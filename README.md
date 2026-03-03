@@ -128,6 +128,5 @@ src/main/java/com/logisticsapplication
 - `config/checkstyle-suppressions.xml`
 
 ## SonarCloud
-```
+
 https://sonarcloud.io/summary/overall?id=ofrode_LogisticsApplication&branch=main
-```
