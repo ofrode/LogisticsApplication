@@ -1,8 +1,11 @@
 package com.logisticsapplication.mapper;
 
-import com.logisticsapplication.dto.request.ShipmentRequest;
+import com.logisticsapplication.dto.response.CargoResponse;
 import com.logisticsapplication.dto.response.ShipmentResponse;
+import com.logisticsapplication.dto.response.ShipmentScheduleResponse;
+import com.logisticsapplication.model.Cargo;
 import com.logisticsapplication.model.Shipment;
+import com.logisticsapplication.model.ShipmentSchedule;
 
 public final class ShipmentMapper {
 
@@ -12,21 +15,35 @@ public final class ShipmentMapper {
     public static ShipmentResponse toResponse(Shipment shipment) {
         return new ShipmentResponse(
                 shipment.getId(),
-                shipment.getCargoName(),
+                shipment.getTrackingNumber(),
                 shipment.getOriginCity(),
                 shipment.getDestinationCity(),
-                shipment.getPickupDate(),
-                shipment.getWeightKg(),
-                shipment.getStatus()
+                shipment.getStatus(),
+                AppUserMapper.toResponse(shipment.getCustomer()),
+                AppUserMapper.toResponse(shipment.getManager()),
+                shipment.getCargoes().stream()
+                        .map(ShipmentMapper::toCargoResponse)
+                        .toList(),
+                toScheduleResponse(shipment.getSchedule()),
+                shipment.getVehicles().stream()
+                        .map(VehicleMapper::toResponse)
+                        .toList()
         );
     }
 
-    public static void updateEntity(Shipment shipment, ShipmentRequest request) {
-        shipment.setCargoName(request.getCargoName());
-        shipment.setOriginCity(request.getOriginCity());
-        shipment.setDestinationCity(request.getDestinationCity());
-        shipment.setPickupDate(request.getPickupDate());
-        shipment.setWeightKg(request.getWeightKg());
-        shipment.setStatus(request.getStatus());
+    private static CargoResponse toCargoResponse(Cargo cargo) {
+        return new CargoResponse(cargo.getId(), cargo.getName(), cargo.getWeightKg());
+    }
+
+    private static ShipmentScheduleResponse toScheduleResponse(ShipmentSchedule schedule) {
+        if (schedule == null) {
+            return null;
+        }
+        return new ShipmentScheduleResponse(
+                schedule.getId(),
+                schedule.getOrderCreatedAt(),
+                schedule.getOrderReceivedAt(),
+                schedule.getArrivalAt()
+        );
     }
 }

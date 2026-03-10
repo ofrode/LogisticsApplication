@@ -1,7 +1,7 @@
 package com.logisticsapplication.dto.response;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
+import com.logisticsapplication.model.ShipmentStatus;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,11 +13,14 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ShipmentResponse {
 
-    private Integer id;
-    private String cargoName;
+    private Long id;
+    private String trackingNumber;
     private String originCity;
     private String destinationCity;
-    private LocalDate pickupDate;
-    private BigDecimal weightKg;
-    private String status;
+    private ShipmentStatus status;
+    private AppUserResponse customer;
+    private AppUserResponse manager;
+    private List<CargoResponse> cargoes;
+    private ShipmentScheduleResponse schedule;
+    private List<VehicleResponse> vehicles;
 }

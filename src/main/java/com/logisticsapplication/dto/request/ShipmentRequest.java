@@ -1,10 +1,11 @@
 package com.logisticsapplication.dto.request;
 
+import com.logisticsapplication.model.ShipmentStatus;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +18,7 @@ import lombok.Setter;
 public class ShipmentRequest {
 
     @NotBlank
-    private String cargoName;
+    private String trackingNumber;
 
     @NotBlank
     private String originCity;
@@ -26,12 +27,22 @@ public class ShipmentRequest {
     private String destinationCity;
 
     @NotNull
-    private LocalDate pickupDate;
+    private ShipmentStatus status;
 
     @NotNull
-    @Positive
-    private BigDecimal weightKg;
+    private Long customerId;
 
-    @NotBlank
-    private String status;
+    @NotNull
+    private Long managerId;
+
+    @NotEmpty
+    private List<Long> vehicleIds;
+
+    @Valid
+    @NotEmpty
+    private List<CargoRequest> cargoes;
+
+    @Valid
+    @NotNull
+    private ShipmentScheduleRequest schedule;
 }
