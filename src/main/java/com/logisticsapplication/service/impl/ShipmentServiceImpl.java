@@ -169,7 +169,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         request.getCargoes().forEach(
                 cargoRequest -> shipment.addCargo(buildCargo(cargoRequest))
         );
-        shipment.setSchedule(buildSchedule(request.getSchedule()));
+        applySchedule(shipment, request.getSchedule());
     }
 
     private Cargo buildCargo(CargoRequest request) {
@@ -184,6 +184,17 @@ public class ShipmentServiceImpl implements ShipmentService {
                 request.getArrivalAt(),
                 null
         );
+    }
+
+    private void applySchedule(Shipment shipment, ShipmentScheduleRequest request) {
+        ShipmentSchedule schedule = shipment.getSchedule();
+        if (schedule == null) {
+            shipment.setSchedule(buildSchedule(request));
+            return;
+        }
+        schedule.setOrderCreatedAt(request.getOrderCreatedAt());
+        schedule.setOrderReceivedAt(request.getOrderReceivedAt());
+        schedule.setArrivalAt(request.getArrivalAt());
     }
 
     private Set<Vehicle> resolveVehicles(List<Long> vehicleIds) {

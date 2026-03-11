@@ -13,7 +13,8 @@ import lombok.Setter;
 public class AppUserResponse {
 
     private Long id;
-    private String fullName;
+    private String firstName;
+    private String lastName;
     private String email;
     private UserRole role;
 }

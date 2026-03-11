@@ -12,14 +12,16 @@ public final class AppUserMapper {
     public static AppUserResponse toResponse(AppUser user) {
         return new AppUserResponse(
                 user.getId(),
-                user.getFullName(),
+                user.getFirstName(),
+                user.getLastName(),
                 user.getEmail(),
                 user.getRole()
         );
     }
 
     public static void updateEntity(AppUser user, AppUserRequest request) {
-        user.setFullName(request.getFullName());
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
         user.setEmail(request.getEmail());
         user.setRole(request.getRole());
     }

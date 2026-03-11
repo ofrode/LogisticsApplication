@@ -3,7 +3,10 @@ package com.logisticsapplication;
 import com.logisticsapplication.dto.request.CargoRequest;
 import com.logisticsapplication.dto.request.ShipmentRequest;
 import com.logisticsapplication.dto.request.ShipmentScheduleRequest;
+import com.logisticsapplication.dto.response.ShipmentResponse;
 import com.logisticsapplication.model.AppUser;
+import com.logisticsapplication.model.Shipment;
+import com.logisticsapplication.model.ShipmentStatus;
 import com.logisticsapplication.model.UserRole;
 import com.logisticsapplication.model.Vehicle;
 import com.logisticsapplication.repository.AppUserRepository;
@@ -22,6 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import static com.logisticsapplication.model.ShipmentStatus.CREATED;
+import static com.logisticsapplication.model.ShipmentStatus.IN_TRANSIT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -61,7 +65,8 @@ class ShipmentTransactionIntegrationTest {
 
         customer = appUserRepository.save(new AppUser(
                 null,
-                "Test Customer",
+                "Test",
+                "Customer",
                 "customer@test.local",
                 UserRole.CUSTOMER,
                 null,
@@ -70,7 +75,8 @@ class ShipmentTransactionIntegrationTest {
         ));
         manager = appUserRepository.save(new AppUser(
                 null,
-                "Test Manager",
+                "Test",
+                "Manager",
                 "manager@test.local",
                 UserRole.MANAGER,
                 null,
@@ -79,7 +85,8 @@ class ShipmentTransactionIntegrationTest {
         ));
         AppUser carrier = appUserRepository.save(new AppUser(
                 null,
-                "Test Carrier",
+                "Test",
+                "Carrier",
                 "carrier@test.local",
                 UserRole.CARRIER,
                 null,
@@ -115,6 +122,34 @@ class ShipmentTransactionIntegrationTest {
         assertThat(shipmentRepository.count()).isZero();
         assertThat(shipmentScheduleRepository.count()).isZero();
         assertThat(cargoRepository.count()).isZero();
+    }
+
+    @Test
+    void updateShipmentReplacesAggregateData() {
+        ShipmentResponse created = shipmentService.create(buildRequest("UPDATE-001"));
+        ShipmentRequest updateRequest = new ShipmentRequest(
+                "UPDATE-001",
+                "Minsk",
+                "Prague",
+                IN_TRANSIT,
+                customer.getId(),
+                manager.getId(),
+                List.of(vehicle.getId()),
+                List.of(new CargoRequest("Updated Cargo", new BigDecimal("99.00"))),
+                new ShipmentScheduleRequest(
+                        LocalDateTime.now(),
+                        LocalDateTime.now().plusHours(1),
+                        LocalDateTime.now().plusDays(2)
+                )
+        );
+
+        ShipmentResponse updated = shipmentService.update(created.getId(), updateRequest);
+        Shipment persisted = shipmentRepository.findDetailedById(updated.getId()).orElseThrow();
+
+        assertThat(updated.getDestinationCity()).isEqualTo("Prague");
+        assertThat(updated.getStatus()).isEqualTo(ShipmentStatus.IN_TRANSIT);
+        assertThat(persisted.getCargoes()).hasSize(1);
+        assertThat(persisted.getCargoes().getFirst().getName()).isEqualTo("Updated Cargo");
     }
 
     private ShipmentRequest buildRequest(String trackingNumber) {
