@@ -1,5 +1,6 @@
 package com.logisticsapplication.service.impl;
 
+import com.logisticsapplication.cache.ShipmentSearchIndex;
 import com.logisticsapplication.dto.request.AppUserRequest;
 import com.logisticsapplication.dto.response.AppUserResponse;
 import com.logisticsapplication.mapper.AppUserMapper;
@@ -20,19 +21,24 @@ public class AppUserServiceImpl implements AppUserService {
 
     private final AppUserRepository appUserRepository;
     private final UserRoleLookupRepository userRoleLookupRepository;
+    private final ShipmentSearchIndex shipmentSearchIndex;
 
     @Override
     public AppUserResponse create(AppUserRequest request) {
         AppUser user = new AppUser();
         apply(user, request);
-        return AppUserMapper.toResponse(appUserRepository.save(user));
+        AppUserResponse response = AppUserMapper.toResponse(appUserRepository.save(user));
+        shipmentSearchIndex.invalidateAll();
+        return response;
     }
 
     @Override
     public AppUserResponse update(Long id, AppUserRequest request) {
         AppUser user = getEntity(id);
         apply(user, request);
-        return AppUserMapper.toResponse(appUserRepository.save(user));
+        AppUserResponse response = AppUserMapper.toResponse(appUserRepository.save(user));
+        shipmentSearchIndex.invalidateAll();
+        return response;
     }
 
     @Override
@@ -53,6 +59,7 @@ public class AppUserServiceImpl implements AppUserService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + id);
         }
         appUserRepository.deleteById(id);
+        shipmentSearchIndex.invalidateAll();
     }
 
     private AppUser getEntity(Long id) {

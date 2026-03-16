@@ -1,14 +1,18 @@
 package com.logisticsapplication.service.impl;
 
+import com.logisticsapplication.cache.ShipmentSearchCacheKey;
+import com.logisticsapplication.cache.ShipmentSearchIndex;
 import com.logisticsapplication.dto.request.CargoRequest;
 import com.logisticsapplication.dto.request.ShipmentRequest;
 import com.logisticsapplication.dto.request.ShipmentScheduleRequest;
+import com.logisticsapplication.dto.response.PageResponse;
 import com.logisticsapplication.dto.response.ShipmentResponse;
 import com.logisticsapplication.mapper.ShipmentMapper;
 import com.logisticsapplication.model.AppUser;
 import com.logisticsapplication.model.Cargo;
 import com.logisticsapplication.model.Shipment;
 import com.logisticsapplication.model.ShipmentSchedule;
+import com.logisticsapplication.model.ShipmentSearchQueryType;
 import com.logisticsapplication.model.ShipmentStatus;
 import com.logisticsapplication.model.ShipmentStatusLookup;
 import com.logisticsapplication.model.UserRole;
@@ -21,10 +25,15 @@ import com.logisticsapplication.repository.ShipmentStatusLookupRepository;
 import com.logisticsapplication.repository.VehicleRepository;
 import com.logisticsapplication.service.ShipmentService;
 import jakarta.transaction.Transactional;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -39,13 +48,16 @@ public class ShipmentServiceImpl implements ShipmentService {
     private final ShipmentScheduleRepository shipmentScheduleRepository;
     private final CargoRepository cargoRepository;
     private final ShipmentStatusLookupRepository shipmentStatusLookupRepository;
+    private final ShipmentSearchIndex shipmentSearchIndex;
 
     @Override
     @Transactional
     public ShipmentResponse create(ShipmentRequest request) {
         Shipment shipment = new Shipment();
         applyAggregate(shipment, request);
-        return ShipmentMapper.toResponse(shipmentRepository.save(shipment));
+        ShipmentResponse response = ShipmentMapper.toResponse(shipmentRepository.save(shipment));
+        shipmentSearchIndex.invalidateAll();
+        return response;
     }
 
     @Override
@@ -55,7 +67,9 @@ public class ShipmentServiceImpl implements ShipmentService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Shipment not found: " + id)
         );
         applyAggregate(shipment, request);
-        return ShipmentMapper.toResponse(shipmentRepository.save(shipment));
+        ShipmentResponse response = ShipmentMapper.toResponse(shipmentRepository.save(shipment));
+        shipmentSearchIndex.invalidateAll();
+        return response;
     }
 
     @Override
@@ -87,11 +101,77 @@ public class ShipmentServiceImpl implements ShipmentService {
 
     @Override
     @Transactional
+    public PageResponse<ShipmentResponse> search(
+            String customerEmail,
+            String cargoName,
+            LocalDateTime arrivalFrom,
+            LocalDateTime arrivalTo,
+            ShipmentSearchQueryType queryType,
+            Pageable pageable
+    ) {
+        String normalizedCustomerEmail = normalize(customerEmail);
+        String normalizedCargoName = normalize(cargoName);
+        ShipmentSearchCacheKey cacheKey = new ShipmentSearchCacheKey(
+                normalizedCustomerEmail,
+                normalizedCargoName,
+                arrivalFrom,
+                arrivalTo,
+                queryType.name(),
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                pageable.getSort().toString()
+        );
+
+        PageResponse<ShipmentResponse> cached = shipmentSearchIndex.get(cacheKey).orElse(null);
+        if (cached != null) {
+            return new PageResponse<>(
+                    cached.getContent(),
+                    cached.getPage(),
+                    cached.getSize(),
+                    cached.getTotalElements(),
+                    cached.getTotalPages(),
+                    true,
+                    cached.getQueryType()
+            );
+        }
+
+        Page<Long> shipmentIds = queryType == ShipmentSearchQueryType.NATIVE
+                ? shipmentRepository.searchIdsNative(
+                        normalizedCustomerEmail,
+                        normalizedCargoName,
+                        arrivalFrom,
+                        arrivalTo,
+                        pageable
+                )
+                : shipmentRepository.searchIdsJpql(
+                        normalizedCustomerEmail,
+                        normalizedCargoName,
+                        arrivalFrom,
+                        arrivalTo,
+                        pageable
+                );
+
+        PageResponse<ShipmentResponse> response = new PageResponse<>(
+                buildOrderedResponses(shipmentIds.getContent()),
+                shipmentIds.getNumber(),
+                shipmentIds.getSize(),
+                shipmentIds.getTotalElements(),
+                shipmentIds.getTotalPages(),
+                false,
+                queryType.name()
+        );
+        shipmentSearchIndex.put(cacheKey, response);
+        return response;
+    }
+
+    @Override
+    @Transactional
     public void delete(Long id) {
         if (!shipmentRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Shipment not found: " + id);
         }
         shipmentRepository.deleteById(id);
+        shipmentSearchIndex.invalidateAll();
     }
 
     @Override
@@ -139,6 +219,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         persistedShipment.getCargoes().add(firstCargo);
 
         if (failAfterFirstCargo) {
+            shipmentSearchIndex.invalidateAll();
             throw new IllegalStateException("Intentional failure after partial save");
         }
 
@@ -231,5 +312,26 @@ public class ShipmentServiceImpl implements ShipmentService {
                         "Shipment status lookup not found: " + status.name()
                 )
         );
+    }
+
+    private List<ShipmentResponse> buildOrderedResponses(List<Long> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        Map<Long, ShipmentResponse> responsesById = new HashMap<>();
+        shipmentRepository.findAllDetailedByIdIn(ids).forEach(
+                shipment -> responsesById.put(shipment.getId(), ShipmentMapper.toResponse(shipment))
+        );
+        return ids.stream()
+                .map(responsesById::get)
+                .toList();
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

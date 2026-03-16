@@ -3,9 +3,11 @@ package com.logisticsapplication;
 import com.logisticsapplication.dto.request.CargoRequest;
 import com.logisticsapplication.dto.request.ShipmentRequest;
 import com.logisticsapplication.dto.request.ShipmentScheduleRequest;
+import com.logisticsapplication.dto.response.PageResponse;
 import com.logisticsapplication.dto.response.ShipmentResponse;
 import com.logisticsapplication.model.AppUser;
 import com.logisticsapplication.model.Shipment;
+import com.logisticsapplication.model.ShipmentSearchQueryType;
 import com.logisticsapplication.model.ShipmentStatus;
 import com.logisticsapplication.model.ShipmentStatusLookup;
 import com.logisticsapplication.model.UserRole;
@@ -24,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -170,6 +173,90 @@ class ShipmentTransactionIntegrationTest {
         assertThat(persisted.getCargoes()).hasSize(1);
         assertThat(persisted.getCargoes().getFirst().getName()).isEqualTo("Updated Cargo");
         assertThat(persisted.getStatus().getId()).isEqualTo(inTransitStatus.getId());
+    }
+
+    @Test
+    void searchWithJpqlUsesPaginationAndCache() {
+        shipmentService.create(buildRequest("SEARCH-JPQL-001"));
+        LocalDateTime arrivalTo = LocalDateTime.now().plusDays(2);
+
+        PageResponse<ShipmentResponse> firstPage = shipmentService.search(
+                "customer@test.local",
+                "Paper",
+                null,
+                arrivalTo,
+                ShipmentSearchQueryType.JPQL,
+                PageRequest.of(0, 1)
+        );
+
+        PageResponse<ShipmentResponse> secondPage = shipmentService.search(
+                "customer@test.local",
+                "Paper",
+                null,
+                arrivalTo,
+                ShipmentSearchQueryType.JPQL,
+                PageRequest.of(0, 1)
+        );
+
+        assertThat(firstPage.getContent()).hasSize(1);
+        assertThat(firstPage.isFromCache()).isFalse();
+        assertThat(firstPage.getTotalElements()).isEqualTo(1);
+        assertThat(secondPage.isFromCache()).isTrue();
+    }
+
+    @Test
+    void nativeSearchCacheIsInvalidatedAfterShipmentUpdate() {
+        ShipmentResponse created = shipmentService.create(buildRequest("SEARCH-NATIVE-001"));
+        LocalDateTime arrivalTo = LocalDateTime.now().plusDays(2);
+        LocalDateTime updatedArrivalTo = LocalDateTime.now().plusDays(4);
+
+        PageResponse<ShipmentResponse> cachedPage = shipmentService.search(
+                "customer@test.local",
+                "Paper",
+                null,
+                arrivalTo,
+                ShipmentSearchQueryType.NATIVE,
+                PageRequest.of(0, 10)
+        );
+        PageResponse<ShipmentResponse> cachedAgain = shipmentService.search(
+                "customer@test.local",
+                "Paper",
+                null,
+                arrivalTo,
+                ShipmentSearchQueryType.NATIVE,
+                PageRequest.of(0, 10)
+        );
+
+        ShipmentRequest updateRequest = new ShipmentRequest(
+                created.getTrackingNumber(),
+                "Vilnius",
+                "Warsaw",
+                IN_TRANSIT,
+                customer.getId(),
+                manager.getId(),
+                List.of(vehicle.getId()),
+                List.of(new CargoRequest("Furniture", new BigDecimal("300.00"))),
+                new ShipmentScheduleRequest(
+                        LocalDateTime.now(),
+                        LocalDateTime.now().plusHours(1),
+                        LocalDateTime.now().plusDays(3)
+                )
+        );
+        shipmentService.update(created.getId(), updateRequest);
+
+        PageResponse<ShipmentResponse> afterInvalidation = shipmentService.search(
+                "customer@test.local",
+                "Paper",
+                null,
+                updatedArrivalTo,
+                ShipmentSearchQueryType.NATIVE,
+                PageRequest.of(0, 10)
+        );
+
+        assertThat(cachedPage.getContent()).hasSize(1);
+        assertThat(cachedAgain.isFromCache()).isTrue();
+        assertThat(afterInvalidation.isFromCache()).isFalse();
+        assertThat(afterInvalidation.getContent()).isEmpty();
     }
 
     private ShipmentRequest buildRequest(String trackingNumber) {

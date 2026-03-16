@@ -1,5 +1,6 @@
 package com.logisticsapplication.service.impl;
 
+import com.logisticsapplication.cache.ShipmentSearchIndex;
 import com.logisticsapplication.dto.request.VehicleRequest;
 import com.logisticsapplication.dto.response.VehicleResponse;
 import com.logisticsapplication.mapper.VehicleMapper;
@@ -21,19 +22,24 @@ public class VehicleServiceImpl implements VehicleService {
 
     private final VehicleRepository vehicleRepository;
     private final AppUserRepository appUserRepository;
+    private final ShipmentSearchIndex shipmentSearchIndex;
 
     @Override
     public VehicleResponse create(VehicleRequest request) {
         Vehicle vehicle = new Vehicle();
         apply(vehicle, request);
-        return VehicleMapper.toResponse(vehicleRepository.save(vehicle));
+        VehicleResponse response = VehicleMapper.toResponse(vehicleRepository.save(vehicle));
+        shipmentSearchIndex.invalidateAll();
+        return response;
     }
 
     @Override
     public VehicleResponse update(Long id, VehicleRequest request) {
         Vehicle vehicle = getEntity(id);
         apply(vehicle, request);
-        return VehicleMapper.toResponse(vehicleRepository.save(vehicle));
+        VehicleResponse response = VehicleMapper.toResponse(vehicleRepository.save(vehicle));
+        shipmentSearchIndex.invalidateAll();
+        return response;
     }
 
     @Override
@@ -54,6 +60,7 @@ public class VehicleServiceImpl implements VehicleService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Vehicle not found: " + id);
         }
         vehicleRepository.deleteById(id);
+        shipmentSearchIndex.invalidateAll();
     }
 
     private void apply(Vehicle vehicle, VehicleRequest request) {
