@@ -7,12 +7,16 @@ import com.logisticsapplication.dto.response.ShipmentResponse;
 import com.logisticsapplication.model.AppUser;
 import com.logisticsapplication.model.Shipment;
 import com.logisticsapplication.model.ShipmentStatus;
+import com.logisticsapplication.model.ShipmentStatusLookup;
 import com.logisticsapplication.model.UserRole;
+import com.logisticsapplication.model.UserRoleLookup;
 import com.logisticsapplication.model.Vehicle;
 import com.logisticsapplication.repository.AppUserRepository;
 import com.logisticsapplication.repository.CargoRepository;
 import com.logisticsapplication.repository.ShipmentRepository;
 import com.logisticsapplication.repository.ShipmentScheduleRepository;
+import com.logisticsapplication.repository.ShipmentStatusLookupRepository;
+import com.logisticsapplication.repository.UserRoleLookupRepository;
 import com.logisticsapplication.repository.VehicleRepository;
 import com.logisticsapplication.service.ShipmentService;
 import java.math.BigDecimal;
@@ -51,9 +55,19 @@ class ShipmentTransactionIntegrationTest {
     @Autowired
     private VehicleRepository vehicleRepository;
 
+    @Autowired
+    private UserRoleLookupRepository userRoleLookupRepository;
+
+    @Autowired
+    private ShipmentStatusLookupRepository shipmentStatusLookupRepository;
+
     private AppUser customer;
     private AppUser manager;
     private Vehicle vehicle;
+    private UserRoleLookup customerRole;
+    private UserRoleLookup managerRole;
+    private UserRoleLookup carrierRole;
+    private ShipmentStatusLookup inTransitStatus;
 
     @BeforeEach
     void setUp() {
@@ -63,12 +77,17 @@ class ShipmentTransactionIntegrationTest {
         vehicleRepository.deleteAll();
         appUserRepository.deleteAll();
 
+        customerRole = userRoleLookupRepository.findByCode(UserRole.CUSTOMER.name()).orElseThrow();
+        managerRole = userRoleLookupRepository.findByCode(UserRole.MANAGER.name()).orElseThrow();
+        carrierRole = userRoleLookupRepository.findByCode(UserRole.CARRIER.name()).orElseThrow();
+        inTransitStatus = shipmentStatusLookupRepository.findByCode(IN_TRANSIT.name()).orElseThrow();
+
         customer = appUserRepository.save(new AppUser(
                 null,
                 "Test",
                 "Customer",
                 "customer@test.local",
-                UserRole.CUSTOMER,
+                customerRole,
                 null,
                 null,
                 null
@@ -78,7 +97,7 @@ class ShipmentTransactionIntegrationTest {
                 "Test",
                 "Manager",
                 "manager@test.local",
-                UserRole.MANAGER,
+                managerRole,
                 null,
                 null,
                 null
@@ -88,7 +107,7 @@ class ShipmentTransactionIntegrationTest {
                 "Test",
                 "Carrier",
                 "carrier@test.local",
-                UserRole.CARRIER,
+                carrierRole,
                 null,
                 null,
                 null
@@ -150,6 +169,7 @@ class ShipmentTransactionIntegrationTest {
         assertThat(updated.getStatus()).isEqualTo(ShipmentStatus.IN_TRANSIT);
         assertThat(persisted.getCargoes()).hasSize(1);
         assertThat(persisted.getCargoes().getFirst().getName()).isEqualTo("Updated Cargo");
+        assertThat(persisted.getStatus().getId()).isEqualTo(inTransitStatus.getId());
     }
 
     private ShipmentRequest buildRequest(String trackingNumber) {

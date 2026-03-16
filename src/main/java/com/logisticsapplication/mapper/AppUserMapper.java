@@ -3,6 +3,7 @@ package com.logisticsapplication.mapper;
 import com.logisticsapplication.dto.request.AppUserRequest;
 import com.logisticsapplication.dto.response.AppUserResponse;
 import com.logisticsapplication.model.AppUser;
+import com.logisticsapplication.model.UserRole;
 
 public final class AppUserMapper {
 
@@ -15,7 +16,7 @@ public final class AppUserMapper {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getEmail(),
-                user.getRole()
+                UserRole.valueOf(user.getRole().getCode())
         );
     }
 
@@ -23,6 +24,5 @@ public final class AppUserMapper {
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setEmail(request.getEmail());
-        user.setRole(request.getRole());
     }
 }

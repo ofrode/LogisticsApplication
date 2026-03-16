@@ -6,6 +6,7 @@ import com.logisticsapplication.dto.response.ShipmentScheduleResponse;
 import com.logisticsapplication.model.Cargo;
 import com.logisticsapplication.model.Shipment;
 import com.logisticsapplication.model.ShipmentSchedule;
+import com.logisticsapplication.model.ShipmentStatus;
 
 public final class ShipmentMapper {
 
@@ -18,7 +19,7 @@ public final class ShipmentMapper {
                 shipment.getTrackingNumber(),
                 shipment.getOriginCity(),
                 shipment.getDestinationCity(),
-                shipment.getStatus(),
+                ShipmentStatus.valueOf(shipment.getStatus().getCode()),
                 AppUserMapper.toResponse(shipment.getCustomer()),
                 AppUserMapper.toResponse(shipment.getManager()),
                 shipment.getCargoes().stream()

@@ -63,7 +63,7 @@ public class VehicleServiceImpl implements VehicleService {
                         "Carrier not found: " + request.getCarrierId()
                 )
         );
-        if (carrier.getRole() != UserRole.CARRIER) {
+        if (!UserRole.CARRIER.name().equals(carrier.getRole().getCode())) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Assigned user must have role CARRIER"

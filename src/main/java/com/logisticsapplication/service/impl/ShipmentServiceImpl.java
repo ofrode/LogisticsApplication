@@ -10,12 +10,14 @@ import com.logisticsapplication.model.Cargo;
 import com.logisticsapplication.model.Shipment;
 import com.logisticsapplication.model.ShipmentSchedule;
 import com.logisticsapplication.model.ShipmentStatus;
+import com.logisticsapplication.model.ShipmentStatusLookup;
 import com.logisticsapplication.model.UserRole;
 import com.logisticsapplication.model.Vehicle;
 import com.logisticsapplication.repository.AppUserRepository;
 import com.logisticsapplication.repository.CargoRepository;
 import com.logisticsapplication.repository.ShipmentRepository;
 import com.logisticsapplication.repository.ShipmentScheduleRepository;
+import com.logisticsapplication.repository.ShipmentStatusLookupRepository;
 import com.logisticsapplication.repository.VehicleRepository;
 import com.logisticsapplication.service.ShipmentService;
 import jakarta.transaction.Transactional;
@@ -36,6 +38,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     private final VehicleRepository vehicleRepository;
     private final ShipmentScheduleRepository shipmentScheduleRepository;
     private final CargoRepository cargoRepository;
+    private final ShipmentStatusLookupRepository shipmentStatusLookupRepository;
 
     @Override
     @Transactional
@@ -71,11 +74,11 @@ public class ShipmentServiceImpl implements ShipmentService {
         if (optimized) {
             shipments = status == null
                     ? shipmentRepository.findAllWithDetails()
-                    : shipmentRepository.findByStatusOrderByIdAsc(status);
+                    : shipmentRepository.findByStatusCodeOrderByIdAsc(status.name());
         } else {
             shipments = status == null
                     ? shipmentRepository.findAll()
-                    : shipmentRepository.findByStatus(status);
+                    : shipmentRepository.findByStatusCode(status.name());
         }
         return shipments.stream()
                 .map(ShipmentMapper::toResponse)
@@ -110,7 +113,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         shipment.setTrackingNumber(request.getTrackingNumber());
         shipment.setOriginCity(request.getOriginCity());
         shipment.setDestinationCity(request.getDestinationCity());
-        shipment.setStatus(request.getStatus());
+        shipment.setStatus(getShipmentStatus(request.getStatus()));
         shipment.setCustomer(
                 getUserByRole(request.getCustomerId(), UserRole.CUSTOMER, "Customer")
         );
@@ -157,7 +160,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         shipment.setTrackingNumber(request.getTrackingNumber());
         shipment.setOriginCity(request.getOriginCity());
         shipment.setDestinationCity(request.getDestinationCity());
-        shipment.setStatus(request.getStatus());
+        shipment.setStatus(getShipmentStatus(request.getStatus()));
         shipment.setCustomer(
                 getUserByRole(request.getCustomerId(), UserRole.CUSTOMER, "Customer")
         );
@@ -212,12 +215,21 @@ public class ShipmentServiceImpl implements ShipmentService {
         AppUser user = appUserRepository.findById(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, label + " not found: " + id)
         );
-        if (user.getRole() != role) {
+        if (!role.name().equals(user.getRole().getCode())) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     label + " must have role " + role
             );
         }
         return user;
+    }
+
+    private ShipmentStatusLookup getShipmentStatus(ShipmentStatus status) {
+        return shipmentStatusLookupRepository.findByCode(status.name()).orElseThrow(
+                () -> new ResponseStatusException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Shipment status lookup not found: " + status.name()
+                )
+        );
     }
 }
