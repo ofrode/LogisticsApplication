@@ -10,6 +10,7 @@ import com.logisticsapplication.model.Vehicle;
 import com.logisticsapplication.repository.AppUserRepository;
 import com.logisticsapplication.repository.VehicleRepository;
 import com.logisticsapplication.service.VehicleService;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ public class VehicleServiceImpl implements VehicleService {
     private final ShipmentSearchIndex shipmentSearchIndex;
 
     @Override
+    @Transactional
     public VehicleResponse create(VehicleRequest request) {
         Vehicle vehicle = new Vehicle();
         apply(vehicle, request);
@@ -34,6 +36,7 @@ public class VehicleServiceImpl implements VehicleService {
     }
 
     @Override
+    @Transactional
     public VehicleResponse update(Long id, VehicleRequest request) {
         Vehicle vehicle = getEntity(id);
         apply(vehicle, request);
@@ -43,18 +46,21 @@ public class VehicleServiceImpl implements VehicleService {
     }
 
     @Override
+    @Transactional
     public VehicleResponse getById(Long id) {
         return VehicleMapper.toResponse(getEntity(id));
     }
 
     @Override
+    @Transactional
     public List<VehicleResponse> getAll() {
-        return vehicleRepository.findAll().stream()
+        return vehicleRepository.findAllWithAssignedCarrierBy().stream()
                 .map(VehicleMapper::toResponse)
                 .toList();
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         if (!vehicleRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Vehicle not found: " + id);
@@ -82,7 +88,7 @@ public class VehicleServiceImpl implements VehicleService {
     }
 
     private Vehicle getEntity(Long id) {
-        return vehicleRepository.findById(id).orElseThrow(
+        return vehicleRepository.findDetailedById(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vehicle not found: " + id)
         );
     }

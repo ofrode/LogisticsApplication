@@ -1,90 +1,32 @@
 {
   "info": {
-    "_postman_id": "a271b4c6-1de8-4a6f-b22a-6e9c3224951f",
+    "_postman_id": "6bf805b7-f305-4453-aeed-9f8fc7b9b35a",
     "name": "Logistics Application",
-    "description": "Collection for end-to-end checks of users, vehicles, shipments, search (JPQL/NATIVE), pagination, cache, and transaction demo endpoints.",
+    "description": "Postman collection with concrete URLs and request bodies based on the current database data. Dynamic Postman variables are used only inside POST bodies to avoid duplicates.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
-  "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          "if (!pm.collectionVariables.get('runId')) {",
-          "  pm.collectionVariables.set('runId', Date.now().toString());",
-          "}"
-        ]
-      }
-    }
-  ],
-  "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:8080"
-    },
-    {
-      "key": "runId",
-      "value": ""
-    },
-    {
-      "key": "managerId",
-      "value": ""
-    },
-    {
-      "key": "customerId",
-      "value": ""
-    },
-    {
-      "key": "carrierId",
-      "value": ""
-    },
-    {
-      "key": "vehicleId",
-      "value": ""
-    },
-    {
-      "key": "shipmentId",
-      "value": ""
-    },
-    {
-      "key": "trackingNumber",
-      "value": ""
-    }
-  ],
   "item": [
     {
       "name": "Health",
       "item": [
         {
-          "name": "GET /api/health",
+          "name": "GET http://localhost:8080/api/health",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/health",
+              "raw": "http://localhost:8080/api/health",
+              "protocol": "http",
               "host": [
-                "{{baseUrl}}"
+                "localhost"
               ],
+              "port": "8080",
               "path": [
                 "api",
                 "health"
               ]
             }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ]
-              }
-            }
-          ]
+          }
         }
       ]
     },
@@ -92,141 +34,157 @@
       "name": "Users",
       "item": [
         {
-          "name": "POST /api/users (Manager)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Test\",\n  \"lastName\": \"Manager\",\n  \"email\": \"manager+{{runId}}@test.local\",\n  \"role\": \"MANAGER\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/users",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "const data = pm.response.json();",
-                  "pm.collectionVariables.set('managerId', data.id);"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST /api/users (Customer)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Test\",\n  \"lastName\": \"Customer\",\n  \"email\": \"customer+{{runId}}@test.local\",\n  \"role\": \"CUSTOMER\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/users",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "const data = pm.response.json();",
-                  "pm.collectionVariables.set('customerId', data.id);"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST /api/users (Carrier)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Test\",\n  \"lastName\": \"Carrier\",\n  \"email\": \"carrier+{{runId}}@test.local\",\n  \"role\": \"CARRIER\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/users",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "const data = pm.response.json();",
-                  "pm.collectionVariables.set('carrierId', data.id);"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET /api/users",
+          "name": "GET http://localhost:8080/api/users",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/users",
+              "raw": "http://localhost:8080/api/users",
+              "protocol": "http",
               "host": [
-                "{{baseUrl}}"
+                "localhost"
               ],
+              "port": "8080",
               "path": [
                 "api",
                 "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET http://localhost:8080/api/users/6",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/users/6",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users",
+                "6"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET http://localhost:8080/api/users/5",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/users/5",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users",
+                "5"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET http://localhost:8080/api/users/4",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/users/4",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users",
+                "4"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST http://localhost:8080/api/users",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Temp\",\n  \"lastName\": \"Manager\",\n  \"email\": \"temp.manager.{{$guid}}@test.local\",\n  \"role\": \"MANAGER\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT http://localhost:8080/api/users/6",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Maksim\",\n  \"lastName\": \"Efimchik\",\n  \"email\": \"efimchik@test.local\",\n  \"role\": \"MANAGER\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/users/6",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users",
+                "6"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE http://localhost:8080/api/users/PASTE_CREATED_ID_HERE",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/users/PASTE_CREATED_ID_HERE",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users",
+                "PASTE_CREATED_ID_HERE"
               ]
             }
           }
@@ -237,7 +195,46 @@
       "name": "Vehicles",
       "item": [
         {
-          "name": "POST /api/vehicles",
+          "name": "GET http://localhost:8080/api/vehicles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/vehicles",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "vehicles"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET http://localhost:8080/api/vehicles/2",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/vehicles/2",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "vehicles",
+                "2"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST http://localhost:8080/api/vehicles",
           "request": {
             "method": "POST",
             "header": [
@@ -248,49 +245,67 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"registrationNumber\": \"TEST-{{runId}}\",\n  \"capacityKg\": 5000.00,\n  \"carrierId\": {{carrierId}}\n}"
+              "raw": "{\n  \"registrationNumber\": \"TEMP-{{$timestamp}}-{{$randomInt}}\",\n  \"capacityKg\": 4500.00,\n  \"carrierId\": 4\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/vehicles",
+              "raw": "http://localhost:8080/api/vehicles",
+              "protocol": "http",
               "host": [
-                "{{baseUrl}}"
+                "localhost"
               ],
+              "port": "8080",
               "path": [
                 "api",
                 "vehicles"
               ]
             }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "const data = pm.response.json();",
-                  "pm.collectionVariables.set('vehicleId', data.id);"
-                ]
-              }
-            }
-          ]
+          }
         },
         {
-          "name": "GET /api/vehicles/{{vehicleId}}",
+          "name": "PUT http://localhost:8080/api/vehicles/2",
           "request": {
-            "method": "GET",
-            "header": [],
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"registrationNumber\": \"EF-9011\",\n  \"capacityKg\": 7000.00,\n  \"carrierId\": 4\n}"
+            },
             "url": {
-              "raw": "{{baseUrl}}/api/vehicles/{{vehicleId}}",
+              "raw": "http://localhost:8080/api/vehicles/2",
+              "protocol": "http",
               "host": [
-                "{{baseUrl}}"
+                "localhost"
               ],
+              "port": "8080",
               "path": [
                 "api",
                 "vehicles",
-                "{{vehicleId}}"
+                "2"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE http://localhost:8080/api/vehicles/PASTE_CREATED_ID_HERE",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/vehicles/PASTE_CREATED_ID_HERE",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "vehicles",
+                "PASTE_CREATED_ID_HERE"
               ]
             }
           }
@@ -301,7 +316,46 @@
       "name": "Shipments",
       "item": [
         {
-          "name": "POST /api/shipments",
+          "name": "GET http://localhost:8080/api/shipments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/shipments",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "shipments"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET http://localhost:8080/api/shipments/1",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/shipments/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "shipments",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST http://localhost:8080/api/shipments",
           "request": {
             "method": "POST",
             "header": [
@@ -312,64 +366,34 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"trackingNumber\": \"SHIP-{{runId}}\",\n  \"originCity\": \"Minsk\",\n  \"destinationCity\": \"Berlin\",\n  \"status\": \"CREATED\",\n  \"customerId\": {{customerId}},\n  \"managerId\": {{managerId}},\n  \"vehicleIds\": [{{vehicleId}}],\n  \"cargoes\": [\n    {\n      \"name\": \"Paper\",\n      \"weightKg\": 150.00\n    },\n    {\n      \"name\": \"Boxes\",\n      \"weightKg\": 200.00\n    }\n  ],\n  \"schedule\": {\n    \"orderCreatedAt\": \"2026-03-24T09:00:00\",\n    \"orderReceivedAt\": \"2026-03-24T11:00:00\",\n    \"arrivalAt\": \"2026-03-25T18:00:00\"\n  }\n}"
+              "raw": "{\n  \"trackingNumber\": \"TEMP-SHIP-{{$timestamp}}-{{$randomInt}}\",\n  \"originCity\": \"Minsk\",\n  \"destinationCity\": \"Warsaw\",\n  \"status\": \"CREATED\",\n  \"customerId\": 5,\n  \"managerId\": 6,\n  \"vehicleIds\": [2],\n  \"cargoes\": [\n    {\n      \"name\": \"Monitors\",\n      \"weightKg\": 300.00\n    }\n  ],\n  \"schedule\": {\n    \"orderCreatedAt\": \"2026-03-24T10:00:00\",\n    \"orderReceivedAt\": \"2026-03-24T12:00:00\",\n    \"arrivalAt\": \"2026-03-27T14:00:00\"\n  }\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/shipments",
+              "raw": "http://localhost:8080/api/shipments",
+              "protocol": "http",
               "host": [
-                "{{baseUrl}}"
+                "localhost"
               ],
+              "port": "8080",
               "path": [
                 "api",
                 "shipments"
               ]
             }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "const data = pm.response.json();",
-                  "pm.collectionVariables.set('shipmentId', data.id);",
-                  "pm.collectionVariables.set('trackingNumber', data.trackingNumber);"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET /api/shipments/{{shipmentId}}",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "shipments",
-                "{{shipmentId}}"
-              ]
-            }
           }
         },
         {
-          "name": "GET /api/shipments?optimized=false",
+          "name": "GET http://localhost:8080/api/shipments?optimized=false",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/shipments?optimized=false",
+              "raw": "http://localhost:8080/api/shipments?optimized=false",
+              "protocol": "http",
               "host": [
-                "{{baseUrl}}"
+                "localhost"
               ],
+              "port": "8080",
               "path": [
                 "api",
                 "shipments"
@@ -384,15 +408,17 @@
           }
         },
         {
-          "name": "GET /api/shipments?optimized=true",
+          "name": "GET http://localhost:8080/api/shipments?optimized=true",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/shipments?optimized=true",
+              "raw": "http://localhost:8080/api/shipments?optimized=true",
+              "protocol": "http",
               "host": [
-                "{{baseUrl}}"
+                "localhost"
               ],
+              "port": "8080",
               "path": [
                 "api",
                 "shipments"
@@ -407,15 +433,17 @@
           }
         },
         {
-          "name": "GET /api/shipments/search (JPQL first)",
+          "name": "GET http://localhost:8080/api/shipments/search JPQL",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/shipments/search?customerEmail=customer+{{runId}}@test.local&cargoName=Paper&arrivalTo=2026-03-26T23:59:59&queryType=JPQL&page=0&size=5",
+              "raw": "http://localhost:8080/api/shipments/search?customerEmail=mogila@test.local&cargoName=Electronics&arrivalTo=2026-03-15T23:59:59&queryType=JPQL&page=0&size=5",
+              "protocol": "http",
               "host": [
-                "{{baseUrl}}"
+                "localhost"
               ],
+              "port": "8080",
               "path": [
                 "api",
                 "shipments",
@@ -424,15 +452,15 @@
               "query": [
                 {
                   "key": "customerEmail",
-                  "value": "customer+{{runId}}@test.local"
+                  "value": "mogila@test.local"
                 },
                 {
                   "key": "cargoName",
-                  "value": "Paper"
+                  "value": "Electronics"
                 },
                 {
                   "key": "arrivalTo",
-                  "value": "2026-03-26T23:59:59"
+                  "value": "2026-03-15T23:59:59"
                 },
                 {
                   "key": "queryType",
@@ -448,35 +476,20 @@
                 }
               ]
             }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "const data = pm.response.json();",
-                  "pm.test('JPQL query type', function () {",
-                  "  pm.expect(data.queryType).to.eql('JPQL');",
-                  "});"
-                ]
-              }
-            }
-          ]
+          }
         },
         {
-          "name": "GET /api/shipments/search (JPQL cache check)",
+          "name": "GET http://localhost:8080/api/shipments/search NATIVE",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/shipments/search?customerEmail=customer+{{runId}}@test.local&cargoName=Paper&arrivalTo=2026-03-26T23:59:59&queryType=JPQL&page=0&size=5",
+              "raw": "http://localhost:8080/api/shipments/search?customerEmail=mogila@test.local&cargoName=Electronics&arrivalTo=2026-03-15T23:59:59&queryType=NATIVE&page=0&size=5",
+              "protocol": "http",
               "host": [
-                "{{baseUrl}}"
+                "localhost"
               ],
+              "port": "8080",
               "path": [
                 "api",
                 "shipments",
@@ -485,76 +498,15 @@
               "query": [
                 {
                   "key": "customerEmail",
-                  "value": "customer+{{runId}}@test.local"
+                  "value": "mogila@test.local"
                 },
                 {
                   "key": "cargoName",
-                  "value": "Paper"
+                  "value": "Electronics"
                 },
                 {
                   "key": "arrivalTo",
-                  "value": "2026-03-26T23:59:59"
-                },
-                {
-                  "key": "queryType",
-                  "value": "JPQL"
-                },
-                {
-                  "key": "page",
-                  "value": "0"
-                },
-                {
-                  "key": "size",
-                  "value": "5"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "const data = pm.response.json();",
-                  "pm.test('Response from cache', function () {",
-                  "  pm.expect(data.fromCache).to.eql(true);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET /api/shipments/search (NATIVE)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/shipments/search?customerEmail=customer+{{runId}}@test.local&cargoName=Paper&arrivalTo=2026-03-26T23:59:59&queryType=NATIVE&page=0&size=5",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "shipments",
-                "search"
-              ],
-              "query": [
-                {
-                  "key": "customerEmail",
-                  "value": "customer+{{runId}}@test.local"
-                },
-                {
-                  "key": "cargoName",
-                  "value": "Paper"
-                },
-                {
-                  "key": "arrivalTo",
-                  "value": "2026-03-26T23:59:59"
+                  "value": "2026-03-15T23:59:59"
                 },
                 {
                   "key": "queryType",
@@ -570,27 +522,10 @@
                 }
               ]
             }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "const data = pm.response.json();",
-                  "pm.test('NATIVE query type', function () {",
-                  "  pm.expect(data.queryType).to.eql('NATIVE');",
-                  "});"
-                ]
-              }
-            }
-          ]
+          }
         },
         {
-          "name": "PUT /api/shipments/{{shipmentId}}",
+          "name": "PUT http://localhost:8080/api/shipments/1",
           "request": {
             "method": "PUT",
             "header": [
@@ -601,117 +536,39 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"trackingNumber\": \"{{trackingNumber}}\",\n  \"originCity\": \"Minsk\",\n  \"destinationCity\": \"Prague\",\n  \"status\": \"IN_TRANSIT\",\n  \"customerId\": {{customerId}},\n  \"managerId\": {{managerId}},\n  \"vehicleIds\": [{{vehicleId}}],\n  \"cargoes\": [\n    {\n      \"name\": \"Furniture\",\n      \"weightKg\": 300.00\n    }\n  ],\n  \"schedule\": {\n    \"orderCreatedAt\": \"2026-03-24T09:00:00\",\n    \"orderReceivedAt\": \"2026-03-24T11:30:00\",\n    \"arrivalAt\": \"2026-03-27T20:00:00\"\n  }\n}"
+              "raw": "{\n  \"trackingNumber\": \"SHIP-6001\",\n  \"originCity\": \"Minsk\",\n  \"destinationCity\": \"Prague\",\n  \"status\": \"IN_TRANSIT\",\n  \"customerId\": 5,\n  \"managerId\": 6,\n  \"vehicleIds\": [2],\n  \"cargoes\": [\n    {\n      \"name\": \"Electronics\",\n      \"weightKg\": 1200.50\n    }\n  ],\n  \"schedule\": {\n    \"orderCreatedAt\": \"2026-03-11T10:00:00\",\n    \"orderReceivedAt\": \"2026-03-11T12:00:00\",\n    \"arrivalAt\": \"2026-03-14T09:00:00\"\n  }\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}",
+              "raw": "http://localhost:8080/api/shipments/1",
+              "protocol": "http",
               "host": [
-                "{{baseUrl}}"
+                "localhost"
               ],
+              "port": "8080",
               "path": [
                 "api",
                 "shipments",
-                "{{shipmentId}}"
+                "1"
               ]
             }
           }
         },
         {
-          "name": "POST /api/shipments/demo/partial-save",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"trackingNumber\": \"PARTIAL-{{runId}}\",\n  \"originCity\": \"Minsk\",\n  \"destinationCity\": \"Berlin\",\n  \"status\": \"CREATED\",\n  \"customerId\": {{customerId}},\n  \"managerId\": {{managerId}},\n  \"vehicleIds\": [{{vehicleId}}],\n  \"cargoes\": [\n    {\n      \"name\": \"Paper\",\n      \"weightKg\": 150.00\n    },\n    {\n      \"name\": \"Boxes\",\n      \"weightKg\": 200.00\n    }\n  ],\n  \"schedule\": {\n    \"orderCreatedAt\": \"2026-03-24T09:00:00\",\n    \"orderReceivedAt\": \"2026-03-24T11:00:00\",\n    \"arrivalAt\": \"2026-03-25T18:00:00\"\n  }\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/shipments/demo/partial-save",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "shipments",
-                "demo",
-                "partial-save"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 500 (expected demo failure)', function () {",
-                  "  pm.response.to.have.status(500);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST /api/shipments/demo/rollback",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"trackingNumber\": \"ROLLBACK-{{runId}}\",\n  \"originCity\": \"Minsk\",\n  \"destinationCity\": \"Berlin\",\n  \"status\": \"CREATED\",\n  \"customerId\": {{customerId}},\n  \"managerId\": {{managerId}},\n  \"vehicleIds\": [{{vehicleId}}],\n  \"cargoes\": [\n    {\n      \"name\": \"Paper\",\n      \"weightKg\": 150.00\n    },\n    {\n      \"name\": \"Boxes\",\n      \"weightKg\": 200.00\n    }\n  ],\n  \"schedule\": {\n    \"orderCreatedAt\": \"2026-03-24T09:00:00\",\n    \"orderReceivedAt\": \"2026-03-24T11:00:00\",\n    \"arrivalAt\": \"2026-03-25T18:00:00\"\n  }\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/shipments/demo/rollback",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "shipments",
-                "demo",
-                "rollback"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 500 (expected demo failure)', function () {",
-                  "  pm.response.to.have.status(500);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "DELETE /api/shipments/{{shipmentId}}",
+          "name": "DELETE http://localhost:8080/api/shipments/PASTE_CREATED_ID_HERE",
           "request": {
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}",
+              "raw": "http://localhost:8080/api/shipments/PASTE_CREATED_ID_HERE",
+              "protocol": "http",
               "host": [
-                "{{baseUrl}}"
+                "localhost"
               ],
+              "port": "8080",
               "path": [
                 "api",
                 "shipments",
-                "{{shipmentId}}"
+                "PASTE_CREATED_ID_HERE"
               ]
             }
           }
@@ -719,76 +576,64 @@
       ]
     },
     {
-      "name": "Cleanup",
+      "name": "Demo Endpoints",
       "item": [
         {
-          "name": "DELETE /api/vehicles/{{vehicleId}}",
+          "name": "POST http://localhost:8080/api/shipments/demo/partial-save",
           "request": {
-            "method": "DELETE",
-            "header": [],
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trackingNumber\": \"PARTIAL-{{$timestamp}}-{{$randomInt}}\",\n  \"originCity\": \"Minsk\",\n  \"destinationCity\": \"Berlin\",\n  \"status\": \"CREATED\",\n  \"customerId\": 5,\n  \"managerId\": 6,\n  \"vehicleIds\": [2],\n  \"cargoes\": [\n    {\n      \"name\": \"Paper\",\n      \"weightKg\": 150.00\n    },\n    {\n      \"name\": \"Boxes\",\n      \"weightKg\": 200.00\n    }\n  ],\n  \"schedule\": {\n    \"orderCreatedAt\": \"2026-03-24T09:00:00\",\n    \"orderReceivedAt\": \"2026-03-24T11:00:00\",\n    \"arrivalAt\": \"2026-03-25T18:00:00\"\n  }\n}"
+            },
             "url": {
-              "raw": "{{baseUrl}}/api/vehicles/{{vehicleId}}",
+              "raw": "http://localhost:8080/api/shipments/demo/partial-save",
+              "protocol": "http",
               "host": [
-                "{{baseUrl}}"
+                "localhost"
               ],
+              "port": "8080",
               "path": [
                 "api",
-                "vehicles",
-                "{{vehicleId}}"
+                "shipments",
+                "demo",
+                "partial-save"
               ]
             }
           }
         },
         {
-          "name": "DELETE /api/users/{{customerId}}",
+          "name": "POST http://localhost:8080/api/shipments/demo/rollback",
           "request": {
-            "method": "DELETE",
-            "header": [],
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trackingNumber\": \"ROLLBACK-{{$timestamp}}-{{$randomInt}}\",\n  \"originCity\": \"Minsk\",\n  \"destinationCity\": \"Berlin\",\n  \"status\": \"CREATED\",\n  \"customerId\": 5,\n  \"managerId\": 6,\n  \"vehicleIds\": [2],\n  \"cargoes\": [\n    {\n      \"name\": \"Paper\",\n      \"weightKg\": 150.00\n    },\n    {\n      \"name\": \"Boxes\",\n      \"weightKg\": 200.00\n    }\n  ],\n  \"schedule\": {\n    \"orderCreatedAt\": \"2026-03-24T09:00:00\",\n    \"orderReceivedAt\": \"2026-03-24T11:00:00\",\n    \"arrivalAt\": \"2026-03-25T18:00:00\"\n  }\n}"
+            },
             "url": {
-              "raw": "{{baseUrl}}/api/users/{{customerId}}",
+              "raw": "http://localhost:8080/api/shipments/demo/rollback",
+              "protocol": "http",
               "host": [
-                "{{baseUrl}}"
+                "localhost"
               ],
+              "port": "8080",
               "path": [
                 "api",
-                "users",
-                "{{customerId}}"
-              ]
-            }
-          }
-        },
-        {
-          "name": "DELETE /api/users/{{managerId}}",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/users/{{managerId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "{{managerId}}"
-              ]
-            }
-          }
-        },
-        {
-          "name": "DELETE /api/users/{{carrierId}}",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/users/{{carrierId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "{{carrierId}}"
+                "shipments",
+                "demo",
+                "rollback"
               ]
             }
           }

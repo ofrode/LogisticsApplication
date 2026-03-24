@@ -26,6 +26,7 @@ import com.logisticsapplication.repository.VehicleRepository;
 import com.logisticsapplication.service.ShipmentService;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -33,7 +34,9 @@ import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -139,19 +142,21 @@ public class ShipmentServiceImpl implements ShipmentService {
             );
         }
 
-        Page<Long> shipmentIds = queryType == ShipmentSearchQueryType.NATIVE
-                ? shipmentRepository.searchIdsNative(
+        Page<Long> shipmentIds = pageable.getSort().isSorted()
+                ? findSortedPage(
                         normalizedCustomerEmail,
                         normalizedCargoName,
                         arrivalFrom,
                         arrivalTo,
+                        queryType,
                         pageable
                 )
-                : shipmentRepository.searchIdsJpql(
+                : findUnsortedPage(
                         normalizedCustomerEmail,
                         normalizedCargoName,
                         arrivalFrom,
                         arrivalTo,
+                        queryType,
                         pageable
                 );
 
@@ -329,6 +334,116 @@ public class ShipmentServiceImpl implements ShipmentService {
         return ids.stream()
                 .map(responsesById::get)
                 .toList();
+    }
+
+    private Page<Long> findUnsortedPage(
+            String customerEmail,
+            String cargoName,
+            LocalDateTime arrivalFrom,
+            LocalDateTime arrivalTo,
+            ShipmentSearchQueryType queryType,
+            Pageable pageable
+    ) {
+        return queryType == ShipmentSearchQueryType.NATIVE
+                ? shipmentRepository.searchIdsNative(
+                        customerEmail,
+                        cargoName,
+                        arrivalFrom,
+                        arrivalTo,
+                        pageable
+                )
+                : shipmentRepository.searchIdsJpql(
+                        customerEmail,
+                        cargoName,
+                        arrivalFrom,
+                        arrivalTo,
+                        pageable
+                );
+    }
+
+    private Page<Long> findSortedPage(
+            String customerEmail,
+            String cargoName,
+            LocalDateTime arrivalFrom,
+            LocalDateTime arrivalTo,
+            ShipmentSearchQueryType queryType,
+            Pageable pageable
+    ) {
+        List<Long> allIds = queryType == ShipmentSearchQueryType.NATIVE
+                ? shipmentRepository.searchIdsNative(
+                        customerEmail,
+                        cargoName,
+                        arrivalFrom,
+                        arrivalTo
+                )
+                : shipmentRepository.searchIdsJpql(
+                        customerEmail,
+                        cargoName,
+                        arrivalFrom,
+                        arrivalTo
+                );
+        List<ShipmentResponse> sortedResponses = sortResponses(
+                buildOrderedResponses(allIds),
+                pageable.getSort()
+        );
+        List<Long> sortedIds = sortedResponses.stream()
+                .map(ShipmentResponse::getId)
+                .toList();
+
+        int fromIndex = Math.toIntExact(pageable.getOffset());
+        if (fromIndex >= sortedIds.size()) {
+            return new PageImpl<>(List.of(), pageable, sortedIds.size());
+        }
+        int toIndex = Math.min(fromIndex + pageable.getPageSize(), sortedIds.size());
+        return new PageImpl<>(sortedIds.subList(fromIndex, toIndex), pageable, sortedIds.size());
+    }
+
+    private List<ShipmentResponse> sortResponses(List<ShipmentResponse> responses, Sort sort) {
+        Comparator<ShipmentResponse> comparator = null;
+        for (Sort.Order order : sort) {
+            Comparator<ShipmentResponse> nextComparator = shipmentResponseComparator(order);
+            if (nextComparator == null) {
+                continue;
+            }
+            comparator = comparator == null
+                    ? nextComparator
+                    : comparator.thenComparing(nextComparator);
+        }
+        if (comparator == null) {
+            return responses;
+        }
+        return responses.stream()
+                .sorted(comparator)
+                .toList();
+    }
+
+    private Comparator<ShipmentResponse> shipmentResponseComparator(Sort.Order order) {
+        Comparator<ShipmentResponse> comparator = switch (order.getProperty()) {
+            case "id" -> Comparator.comparing(ShipmentResponse::getId);
+            case "trackingNumber" -> Comparator.comparing(
+                    ShipmentResponse::getTrackingNumber,
+                    Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)
+            );
+            case "originCity" -> Comparator.comparing(
+                    ShipmentResponse::getOriginCity,
+                    Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)
+            );
+            case "destinationCity" -> Comparator.comparing(
+                    ShipmentResponse::getDestinationCity,
+                    Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)
+            );
+            case "status" -> Comparator.comparing(
+                    response -> response.getStatus() == null
+                            ? null
+                            : response.getStatus().name(),
+                    Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)
+            );
+            default -> null;
+        };
+        if (comparator == null) {
+            return null;
+        }
+        return order.isAscending() ? comparator : comparator.reversed();
     }
 
     private String normalize(String value) {

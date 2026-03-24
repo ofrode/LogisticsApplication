@@ -38,13 +38,83 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
             join s.customer customer
             join s.cargoes cargo
             join s.schedule schedule
-            where (:customerEmail is null or lower(customer.email) = lower(:customerEmail))
-              and (:cargoName is null
-                  or lower(cargo.name) like lower(concat('%', :cargoName, '%')))
-              and (:arrivalFrom is null or schedule.arrivalAt >= :arrivalFrom)
-              and (:arrivalTo is null or schedule.arrivalAt <= :arrivalTo)
+            where lower(customer.email) = lower(coalesce(:customerEmail, customer.email))
+              and lower(cargo.name) like lower(concat('%', coalesce(:cargoName, cargo.name), '%'))
+              and schedule.arrivalAt >= coalesce(:arrivalFrom, schedule.arrivalAt)
+              and schedule.arrivalAt <= coalesce(:arrivalTo, schedule.arrivalAt)
             """)
     Page<Long> searchIdsJpql(
+            @Param("customerEmail") String customerEmail,
+            @Param("cargoName") String cargoName,
+            @Param("arrivalFrom") LocalDateTime arrivalFrom,
+            @Param("arrivalTo") LocalDateTime arrivalTo,
+            Pageable pageable
+    );
+
+    @Query("""
+            select distinct s.id
+            from Shipment s
+            join s.customer customer
+            join s.cargoes cargo
+            join s.schedule schedule
+            where lower(customer.email) = lower(coalesce(:customerEmail, customer.email))
+              and lower(cargo.name) like lower(concat('%', coalesce(:cargoName, cargo.name), '%'))
+              and schedule.arrivalAt >= coalesce(:arrivalFrom, schedule.arrivalAt)
+              and schedule.arrivalAt <= coalesce(:arrivalTo, schedule.arrivalAt)
+            """)
+    List<Long> searchIdsJpql(
+            @Param("customerEmail") String customerEmail,
+            @Param("cargoName") String cargoName,
+            @Param("arrivalFrom") LocalDateTime arrivalFrom,
+            @Param("arrivalTo") LocalDateTime arrivalTo
+    );
+
+    @Query(
+            value = """
+                    select distinct s.id
+                    from shipments s
+                    join app_users customer on customer.id = s.customer_id
+                    join cargoes cargo on cargo.shipment_id = s.id
+                    join shipment_schedules schedule on schedule.shipment_id = s.id
+                    where lower(customer.email) = lower(
+                        coalesce(cast(:customerEmail as varchar), customer.email)
+                    )
+                      and lower(cargo.name) like lower(
+                        concat('%', coalesce(cast(:cargoName as varchar), cargo.name), '%')
+                      )
+                      and schedule.arrival_at >= coalesce(
+                        cast(:arrivalFrom as timestamp),
+                        schedule.arrival_at
+                      )
+                      and schedule.arrival_at <= coalesce(
+                        cast(:arrivalTo as timestamp),
+                        schedule.arrival_at
+                      )
+                    """,
+            countQuery = """
+                    select count(distinct s.id)
+                    from shipments s
+                    join app_users customer on customer.id = s.customer_id
+                    join cargoes cargo on cargo.shipment_id = s.id
+                    join shipment_schedules schedule on schedule.shipment_id = s.id
+                    where lower(customer.email) = lower(
+                        coalesce(cast(:customerEmail as varchar), customer.email)
+                    )
+                      and lower(cargo.name) like lower(
+                        concat('%', coalesce(cast(:cargoName as varchar), cargo.name), '%')
+                      )
+                      and schedule.arrival_at >= coalesce(
+                        cast(:arrivalFrom as timestamp),
+                        schedule.arrival_at
+                      )
+                      and schedule.arrival_at <= coalesce(
+                        cast(:arrivalTo as timestamp),
+                        schedule.arrival_at
+                      )
+                    """,
+            nativeQuery = true
+    )
+    Page<Long> searchIdsNative(
             @Param("customerEmail") String customerEmail,
             @Param("cargoName") String cargoName,
             @Param("arrivalFrom") LocalDateTime arrivalFrom,
@@ -59,42 +129,28 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
                     join app_users customer on customer.id = s.customer_id
                     join cargoes cargo on cargo.shipment_id = s.id
                     join shipment_schedules schedule on schedule.shipment_id = s.id
-                    where (:customerEmail is null
-                        or lower(customer.email) = lower(cast(:customerEmail as varchar)))
-                      and (
-                        :cargoName is null
-                        or lower(cargo.name) like lower(
-                            concat('%', cast(:cargoName as varchar), '%')
-                        )
+                    where lower(customer.email) = lower(
+                        coalesce(cast(:customerEmail as varchar), customer.email)
+                    )
+                      and lower(cargo.name) like lower(
+                        concat('%', coalesce(cast(:cargoName as varchar), cargo.name), '%')
                       )
-                      and (:arrivalFrom is null or schedule.arrival_at >= :arrivalFrom)
-                      and (:arrivalTo is null or schedule.arrival_at <= :arrivalTo)
-                    """,
-            countQuery = """
-                    select count(distinct s.id)
-                    from shipments s
-                    join app_users customer on customer.id = s.customer_id
-                    join cargoes cargo on cargo.shipment_id = s.id
-                    join shipment_schedules schedule on schedule.shipment_id = s.id
-                    where (:customerEmail is null
-                        or lower(customer.email) = lower(cast(:customerEmail as varchar)))
-                      and (
-                        :cargoName is null
-                        or lower(cargo.name) like lower(
-                            concat('%', cast(:cargoName as varchar), '%')
-                        )
+                      and schedule.arrival_at >= coalesce(
+                        cast(:arrivalFrom as timestamp),
+                        schedule.arrival_at
                       )
-                      and (:arrivalFrom is null or schedule.arrival_at >= :arrivalFrom)
-                      and (:arrivalTo is null or schedule.arrival_at <= :arrivalTo)
+                      and schedule.arrival_at <= coalesce(
+                        cast(:arrivalTo as timestamp),
+                        schedule.arrival_at
+                      )
                     """,
             nativeQuery = true
     )
-    Page<Long> searchIdsNative(
+    List<Long> searchIdsNative(
             @Param("customerEmail") String customerEmail,
             @Param("cargoName") String cargoName,
             @Param("arrivalFrom") LocalDateTime arrivalFrom,
-            @Param("arrivalTo") LocalDateTime arrivalTo,
-            Pageable pageable
+            @Param("arrivalTo") LocalDateTime arrivalTo
     );
 
     @EntityGraph(attributePaths = {"customer", "manager", "cargoes", "schedule", "vehicles"})
