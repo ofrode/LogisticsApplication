@@ -1,0 +1,799 @@
+{
+  "info": {
+    "_postman_id": "a271b4c6-1de8-4a6f-b22a-6e9c3224951f",
+    "name": "Logistics Application",
+    "description": "Collection for end-to-end checks of users, vehicles, shipments, search (JPQL/NATIVE), pagination, cache, and transaction demo endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('runId')) {",
+          "  pm.collectionVariables.set('runId', Date.now().toString());",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "runId",
+      "value": ""
+    },
+    {
+      "key": "managerId",
+      "value": ""
+    },
+    {
+      "key": "customerId",
+      "value": ""
+    },
+    {
+      "key": "carrierId",
+      "value": ""
+    },
+    {
+      "key": "vehicleId",
+      "value": ""
+    },
+    {
+      "key": "shipmentId",
+      "value": ""
+    },
+    {
+      "key": "trackingNumber",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /api/health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "POST /api/users (Manager)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Test\",\n  \"lastName\": \"Manager\",\n  \"email\": \"manager+{{runId}}@test.local\",\n  \"role\": \"MANAGER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "pm.collectionVariables.set('managerId', data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/users (Customer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Test\",\n  \"lastName\": \"Customer\",\n  \"email\": \"customer+{{runId}}@test.local\",\n  \"role\": \"CUSTOMER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "pm.collectionVariables.set('customerId', data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/users (Carrier)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Test\",\n  \"lastName\": \"Carrier\",\n  \"email\": \"carrier+{{runId}}@test.local\",\n  \"role\": \"CARRIER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "pm.collectionVariables.set('carrierId', data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vehicles",
+      "item": [
+        {
+          "name": "POST /api/vehicles",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"registrationNumber\": \"TEST-{{runId}}\",\n  \"capacityKg\": 5000.00,\n  \"carrierId\": {{carrierId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "vehicles"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "pm.collectionVariables.set('vehicleId', data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/vehicles/{{vehicleId}}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles/{{vehicleId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "vehicles",
+                "{{vehicleId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Shipments",
+      "item": [
+        {
+          "name": "POST /api/shipments",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trackingNumber\": \"SHIP-{{runId}}\",\n  \"originCity\": \"Minsk\",\n  \"destinationCity\": \"Berlin\",\n  \"status\": \"CREATED\",\n  \"customerId\": {{customerId}},\n  \"managerId\": {{managerId}},\n  \"vehicleIds\": [{{vehicleId}}],\n  \"cargoes\": [\n    {\n      \"name\": \"Paper\",\n      \"weightKg\": 150.00\n    },\n    {\n      \"name\": \"Boxes\",\n      \"weightKg\": 200.00\n    }\n  ],\n  \"schedule\": {\n    \"orderCreatedAt\": \"2026-03-24T09:00:00\",\n    \"orderReceivedAt\": \"2026-03-24T11:00:00\",\n    \"arrivalAt\": \"2026-03-25T18:00:00\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "pm.collectionVariables.set('shipmentId', data.id);",
+                  "pm.collectionVariables.set('trackingNumber', data.trackingNumber);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/shipments/{{shipmentId}}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{shipmentId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/shipments?optimized=false",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments?optimized=false",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments"
+              ],
+              "query": [
+                {
+                  "key": "optimized",
+                  "value": "false"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/shipments?optimized=true",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments?optimized=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments"
+              ],
+              "query": [
+                {
+                  "key": "optimized",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/shipments/search (JPQL first)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/search?customerEmail=customer+{{runId}}@test.local&cargoName=Paper&arrivalTo=2026-03-26T23:59:59&queryType=JPQL&page=0&size=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "customerEmail",
+                  "value": "customer+{{runId}}@test.local"
+                },
+                {
+                  "key": "cargoName",
+                  "value": "Paper"
+                },
+                {
+                  "key": "arrivalTo",
+                  "value": "2026-03-26T23:59:59"
+                },
+                {
+                  "key": "queryType",
+                  "value": "JPQL"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "pm.test('JPQL query type', function () {",
+                  "  pm.expect(data.queryType).to.eql('JPQL');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/shipments/search (JPQL cache check)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/search?customerEmail=customer+{{runId}}@test.local&cargoName=Paper&arrivalTo=2026-03-26T23:59:59&queryType=JPQL&page=0&size=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "customerEmail",
+                  "value": "customer+{{runId}}@test.local"
+                },
+                {
+                  "key": "cargoName",
+                  "value": "Paper"
+                },
+                {
+                  "key": "arrivalTo",
+                  "value": "2026-03-26T23:59:59"
+                },
+                {
+                  "key": "queryType",
+                  "value": "JPQL"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "pm.test('Response from cache', function () {",
+                  "  pm.expect(data.fromCache).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/shipments/search (NATIVE)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/search?customerEmail=customer+{{runId}}@test.local&cargoName=Paper&arrivalTo=2026-03-26T23:59:59&queryType=NATIVE&page=0&size=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "customerEmail",
+                  "value": "customer+{{runId}}@test.local"
+                },
+                {
+                  "key": "cargoName",
+                  "value": "Paper"
+                },
+                {
+                  "key": "arrivalTo",
+                  "value": "2026-03-26T23:59:59"
+                },
+                {
+                  "key": "queryType",
+                  "value": "NATIVE"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "pm.test('NATIVE query type', function () {",
+                  "  pm.expect(data.queryType).to.eql('NATIVE');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/shipments/{{shipmentId}}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trackingNumber\": \"{{trackingNumber}}\",\n  \"originCity\": \"Minsk\",\n  \"destinationCity\": \"Prague\",\n  \"status\": \"IN_TRANSIT\",\n  \"customerId\": {{customerId}},\n  \"managerId\": {{managerId}},\n  \"vehicleIds\": [{{vehicleId}}],\n  \"cargoes\": [\n    {\n      \"name\": \"Furniture\",\n      \"weightKg\": 300.00\n    }\n  ],\n  \"schedule\": {\n    \"orderCreatedAt\": \"2026-03-24T09:00:00\",\n    \"orderReceivedAt\": \"2026-03-24T11:30:00\",\n    \"arrivalAt\": \"2026-03-27T20:00:00\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{shipmentId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/shipments/demo/partial-save",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trackingNumber\": \"PARTIAL-{{runId}}\",\n  \"originCity\": \"Minsk\",\n  \"destinationCity\": \"Berlin\",\n  \"status\": \"CREATED\",\n  \"customerId\": {{customerId}},\n  \"managerId\": {{managerId}},\n  \"vehicleIds\": [{{vehicleId}}],\n  \"cargoes\": [\n    {\n      \"name\": \"Paper\",\n      \"weightKg\": 150.00\n    },\n    {\n      \"name\": \"Boxes\",\n      \"weightKg\": 200.00\n    }\n  ],\n  \"schedule\": {\n    \"orderCreatedAt\": \"2026-03-24T09:00:00\",\n    \"orderReceivedAt\": \"2026-03-24T11:00:00\",\n    \"arrivalAt\": \"2026-03-25T18:00:00\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/demo/partial-save",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "demo",
+                "partial-save"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 500 (expected demo failure)', function () {",
+                  "  pm.response.to.have.status(500);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/shipments/demo/rollback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trackingNumber\": \"ROLLBACK-{{runId}}\",\n  \"originCity\": \"Minsk\",\n  \"destinationCity\": \"Berlin\",\n  \"status\": \"CREATED\",\n  \"customerId\": {{customerId}},\n  \"managerId\": {{managerId}},\n  \"vehicleIds\": [{{vehicleId}}],\n  \"cargoes\": [\n    {\n      \"name\": \"Paper\",\n      \"weightKg\": 150.00\n    },\n    {\n      \"name\": \"Boxes\",\n      \"weightKg\": 200.00\n    }\n  ],\n  \"schedule\": {\n    \"orderCreatedAt\": \"2026-03-24T09:00:00\",\n    \"orderReceivedAt\": \"2026-03-24T11:00:00\",\n    \"arrivalAt\": \"2026-03-25T18:00:00\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/demo/rollback",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "demo",
+                "rollback"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 500 (expected demo failure)', function () {",
+                  "  pm.response.to.have.status(500);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /api/shipments/{{shipmentId}}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{shipmentId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cleanup",
+      "item": [
+        {
+          "name": "DELETE /api/vehicles/{{vehicleId}}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles/{{vehicleId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "vehicles",
+                "{{vehicleId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/users/{{customerId}}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{customerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{customerId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/users/{{managerId}}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{managerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{managerId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/users/{{carrierId}}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{carrierId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{carrierId}}"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

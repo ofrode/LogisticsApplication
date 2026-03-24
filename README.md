@@ -1,6 +1,16 @@
 # Logistics Application
 
-REST API для управления логистическими заказами. Проект построен на `Spring Boot`, `Spring Data JPA` и поддерживает `H2` и `PostgreSQL`, покрывая требования по CRUD, связям между сущностями, транзакциям и демонстрации проблемы `N+1`.
+REST API для управления логистическими заказами на `Spring Boot`.
+
+Проект покрывает:
+
+- CRUD для пользователей, транспорта и заказов;
+- сложные связи JPA;
+- демонстрацию `N+1` и оптимизацию через `@EntityGraph`;
+- транзакционное поведение (`partial-save` vs `rollback`);
+- расширенный поиск `Shipment` через `JPQL` и `native query`;
+- пагинацию (`Pageable`);
+- in-memory индекс (`HashMap`) для кэширования результатов поиска.
 
 ## Стек
 
@@ -8,192 +18,255 @@ REST API для управления логистическими заказам
 - `Spring Boot 4.0.3`
 - `Spring Web MVC`
 - `Spring Data JPA`
-- `H2 Database`
+- `H2`
 - `PostgreSQL`
 - `Maven`
 - `Checkstyle`
 
 ## Модель данных
 
-В проекте реализовано 5 сущностей:
+### Основные сущности
 
-- `AppUser` - пользователь системы с ролями `ADMIN`, `MANAGER`, `CUSTOMER`, `CARRIER`
-- `Shipment` - заказ на перевозку
-- `Cargo` - единица груза с названием и весом
-- `ShipmentSchedule` - даты заказа: создание, прием, прибытие
-- `Vehicle` - транспорт перевозчика
+- `AppUser`
+- `Vehicle`
+- `Shipment`
+- `Cargo`
+- `ShipmentSchedule`
 
-Связи:
+### Справочники (lookup tables)
 
-- `Shipment -> Cargo` : `OneToMany`
-- `Shipment <-> Vehicle` : `ManyToMany`
-- `AppUser -> Shipment` : `ManyToOne` для заказчика и менеджера
-- `Vehicle -> AppUser` : `ManyToOne` для закрепленного перевозчика
-- `Shipment -> ShipmentSchedule` : `OneToOne`
+- `UserRoleLookup` (`user_roles`)
+- `ShipmentStatusLookup` (`shipment_statuses`)
 
-## ER-диаграмма
+Важно: в БД в `app_users` и `shipments` хранятся `role_id` и `status_id`, а не строковые enum-значения.
 
-```mermaid
-erDiagram
-    APP_USERS ||--o{ SHIPMENTS : customer_id
-    APP_USERS ||--o{ SHIPMENTS : manager_id
-    APP_USERS ||--o{ VEHICLES : carrier_id
-    SHIPMENTS ||--o{ CARGOES : shipment_id
-    SHIPMENTS ||--|| SHIPMENT_SCHEDULES : shipment_id
-    SHIPMENTS }o--o{ VEHICLES : shipment_vehicle
+## Связи
 
-    APP_USERS {
-        bigint id PK
-        string first_name
-        string last_name
-        string email UK
-        string role
-    }
+- `Shipment -> Cargo`: `OneToMany`
+- `Shipment -> ShipmentSchedule`: `OneToOne`
+- `Shipment <-> Vehicle`: `ManyToMany`
+- `Shipment -> AppUser (customer/manager)`: `ManyToOne`
+- `Vehicle -> AppUser (assignedCarrier)`: `ManyToOne`
+- `AppUser -> UserRoleLookup`: `ManyToOne`
+- `Shipment -> ShipmentStatusLookup`: `ManyToOne`
 
-    SHIPMENTS {
-        bigint id PK
-        string tracking_number UK
-        string origin_city
-        string destination_city
-        string status
-        bigint customer_id FK
-        bigint manager_id FK
-    }
+## Структура проекта
 
-    CARGOES {
-        bigint id PK
-        string name
-        decimal weight_kg
-        bigint shipment_id FK
-    }
-
-    SHIPMENT_SCHEDULES {
-        bigint id PK
-        datetime order_created_at
-        datetime order_received_at
-        datetime arrival_at
-        bigint shipment_id FK UK
-    }
-
-    VEHICLES {
-        bigint id PK
-        string registration_number UK
-        decimal capacity_kg
-        bigint carrier_id FK
-    }
-
-    SHIPMENT_VEHICLE {
-        bigint shipment_id FK
-        bigint vehicle_id FK
-    }
+```text
+logisticsapplication/
+├── pom.xml
+├── README.md
+├── Task.md
+├── config/
+│   ├── checkstyle.xml
+│   └── checkstyle-suppressions.xml
+├── postman/
+│   └── LogisticsApplication.postman_collection.json
+└── src/
+    ├── main/
+    │   ├── java/
+    │   │   └── com/
+    │   │       └── logisticsapplication/
+    │   │           ├── LogisticsApplication.java
+    │   │           ├── controller/
+    │   │           │   ├── AppUserController.java
+    │   │           │   ├── HealthController.java
+    │   │           │   ├── ShipmentController.java
+    │   │           │   └── VehicleController.java
+    │   │           ├── cache/
+    │   │           │   ├── ShipmentSearchCacheKey.java
+    │   │           │   └── ShipmentSearchIndex.java
+    │   │           ├── config/
+    │   │           │   └── LookupDataInitializer.java
+    │   │           ├── service/
+    │   │           │   ├── AppUserService.java
+    │   │           │   ├── ShipmentService.java
+    │   │           │   ├── VehicleService.java
+    │   │           │   └── impl/
+    │   │           │       ├── AppUserServiceImpl.java
+    │   │           │       ├── ShipmentServiceImpl.java
+    │   │           │       └── VehicleServiceImpl.java
+    │   │           ├── repository/
+    │   │           │   ├── AppUserRepository.java
+    │   │           │   ├── CargoRepository.java
+    │   │           │   ├── ShipmentRepository.java
+    │   │           │   ├── ShipmentScheduleRepository.java
+    │   │           │   ├── ShipmentStatusLookupRepository.java
+    │   │           │   ├── UserRoleLookupRepository.java
+    │   │           │   └── VehicleRepository.java
+    │   │           ├── model/
+    │   │           │   ├── AppUser.java
+    │   │           │   ├── Cargo.java
+    │   │           │   ├── Shipment.java
+    │   │           │   ├── ShipmentSchedule.java
+    │   │           │   ├── ShipmentSearchQueryType.java
+    │   │           │   ├── ShipmentStatus.java
+    │   │           │   ├── ShipmentStatusLookup.java
+    │   │           │   ├── UserRole.java
+    │   │           │   ├── UserRoleLookup.java
+    │   │           │   └── Vehicle.java
+    │   │           ├── dto/
+    │   │           │   ├── request/
+    │   │           │   │   ├── AppUserRequest.java
+    │   │           │   │   ├── CargoRequest.java
+    │   │           │   │   ├── ShipmentRequest.java
+    │   │           │   │   ├── ShipmentScheduleRequest.java
+    │   │           │   │   └── VehicleRequest.java
+    │   │           │   └── response/
+    │   │           │       ├── AppUserResponse.java
+    │   │           │       ├── CargoResponse.java
+    │   │           │       ├── PageResponse.java
+    │   │           │       ├── ShipmentResponse.java
+    │   │           │       ├── ShipmentScheduleResponse.java
+    │   │           │       └── VehicleResponse.java
+    │   │           └── mapper/
+    │   │               ├── AppUserMapper.java
+    │   │               ├── ShipmentMapper.java
+    │   │               └── VehicleMapper.java
+    │   └── resources/
+    │       ├── application.properties
+    │       ├── application-postgres.properties
+    │       └── sql/
+    │           ├── fix_app_users_table_postgres.sql
+    │           └── migrate_roles_and_statuses_to_lookup_tables.sql
+    └── test/
+        ├── java/
+        │   └── com/
+        │       └── logisticsapplication/
+        │           ├── LogisticsapplicationApplicationTests.java
+        │           └── ShipmentTransactionIntegrationTest.java
+        └── resources/
+            └── application-test.properties
 ```
 
-## Почему так настроены `CascadeType` и `FetchType`
+## API
 
-- Для `Shipment.cargoes` и `Shipment.schedule` используется `CascadeType.ALL`, потому что это составные части заказа. Они создаются, обновляются и удаляются вместе с `Shipment`.
-- Для `Shipment.vehicles`, `Shipment.customer`, `Shipment.manager` каскад не используется, потому что транспорт и пользователи живут независимо от заказа.
-- Для коллекций и ассоциаций выставлен `FetchType.LAZY`, чтобы не тянуть лишние данные автоматически и иметь возможность показать проблему `N+1`.
-
-## CRUD API
-
-Основные endpoints:
+### Базовые endpoints
 
 - `GET/POST/PUT/DELETE /api/users`
 - `GET/POST/PUT/DELETE /api/vehicles`
 - `GET/POST/PUT/DELETE /api/shipments`
+- `GET /api/health`
 
-Пример создания заказа:
+### N+1 демонстрация
 
-```json
-{
-  "trackingNumber": "SHIP-2001",
-  "originCity": "Minsk",
-  "destinationCity": "Berlin",
-  "status": "CREATED",
-  "customerId": 3,
-  "managerId": 2,
-  "vehicleIds": [1, 2],
-  "cargoes": [
-    {
-      "name": "Industrial Equipment",
-      "weightKg": 1800.50
-    },
-    {
-      "name": "Boxes",
-      "weightKg": 220.00
-    }
-  ],
-  "schedule": {
-    "orderCreatedAt": "2026-03-10T09:00:00",
-    "orderReceivedAt": "2026-03-10T12:00:00",
-    "arrivalAt": "2026-03-12T18:00:00"
-  }
-}
+- `GET /api/shipments?optimized=false`
+- `GET /api/shipments?optimized=true`
+
+### Транзакционная демонстрация
+
+- `POST /api/shipments/demo/partial-save` (намеренный fail без общего rollback)
+- `POST /api/shipments/demo/rollback` (намеренный fail c rollback)
+
+### Расширенный поиск Shipment
+
+`GET /api/shipments/search`
+
+Параметры:
+
+- `customerEmail` (optional)
+- `cargoName` (optional)
+- `arrivalFrom` (optional, ISO datetime)
+- `arrivalTo` (optional, ISO datetime)
+- `queryType=JPQL|NATIVE`
+- `page`, `size`, `sort` (`Pageable`)
+
+Пример:
+
+```http
+GET /api/shipments/search?customerEmail=customer@test.local&cargoName=Paper&queryType=JPQL&page=0&size=5
 ```
 
-## N+1 и решение
+Ответ содержит:
 
-Для демонстрации добавлен один и тот же endpoint с двумя режимами:
+- контент страницы;
+- `totalElements`, `totalPages`, `page`, `size`;
+- `queryType`;
+- `fromCache` (результат из in-memory индекса или нет).
 
-- `GET /api/shipments?optimized=false` - обычная загрузка, которая провоцирует `N+1`
-- `GET /api/shipments?optimized=true` - загрузка через `@EntityGraph`, которая забирает связанные данные сразу
+## In-memory индекс поиска
 
-SQL виден в логах, потому что включен `spring.jpa.show-sql=true`.
+Поиск кэшируется в `HashMap<ShipmentSearchCacheKey, PageResponse<ShipmentResponse>>`.
 
-## Транзакции
+- ключ составной (`email`, `cargo`, диапазон дат, тип запроса, страница, размер, сортировка);
+- корректность обеспечивается `equals()`/`hashCode()` в `ShipmentSearchCacheKey`;
+- при изменении данных (`create/update/delete`) индекс инвалидируется.
 
-Есть два специальных endpoint:
+## База данных и профили
 
-- `POST /api/shipments/demo/partial-save` - намеренно падает без `@Transactional`, поэтому часть данных остается в БД
-- `POST /api/shipments/demo/rollback` - намеренно падает с `@Transactional`, поэтому вся операция откатывается
+### По умолчанию (H2)
 
-Для этих сценариев добавлен интеграционный тест.
+- профиль: `h2`
+- URL: `jdbc:h2:mem:logistics_db`
+- console: `http://localhost:8080/h2-console`
 
-## База данных
+### PostgreSQL
 
-По умолчанию проект стартует с профилем `h2`:
+Файл профиля: `src/main/resources/application-postgres.properties`
 
-- JDBC URL: `jdbc:h2:mem:logistics_db`
-- Console: `http://localhost:8080/h2-console`
-- User: `sa`
-- Password: пустой
+Используются переменные окружения:
 
-Для PostgreSQL добавлен профиль `postgres` в [application-postgres.properties](/home/ofrode/vs%20code/Java/logisticsapplication/src/main/resources/application-postgres.properties):
+- `POSTGRES_URL` (optional, default `jdbc:postgresql://localhost:5432/logistics_db`)
+- `POSTGRES_USER` (optional, default `logistics_user`)
+- `POSTGRES_PASSWORD` (required)
 
-- JDBC URL: `jdbc:postgresql://localhost:5432/logistics_db`
-- User: `logistics_user`
-- Password: `secret`
-
-Перед запуском с PostgreSQL создайте базу и пользователя:
-
-```sql
-CREATE DATABASE logistics_db;
-CREATE USER logistics_user WITH PASSWORD 'secret';
-GRANT ALL PRIVILEGES ON DATABASE logistics_db TO logistics_user;
-```
-
-## Проверка проекта
-
-Checkstyle запускается на фазе `validate`, поэтому при ошибках стиля сборка не проходит:
+Пример:
 
 ```bash
-mvn validate
+export POSTGRES_URL='jdbc:postgresql://localhost:5432/logistics_db'
+export POSTGRES_USER='logistics_user'
+export POSTGRES_PASSWORD='your_password'
 ```
 
-Запуск тестов:
+## Миграция role/status в lookup-таблицы
+
+SQL-файл:
+
+- `src/main/resources/sql/migrate_roles_and_statuses_to_lookup_tables.sql`
+
+Запуск:
 
 ```bash
-mvn test
+psql -h localhost -U logistics_user -d logistics_db -f "src/main/resources/sql/migrate_roles_and_statuses_to_lookup_tables.sql"
 ```
 
-Запуск приложения с H2:
+## Postman
+
+Готовая коллекция:
+
+- `postman/LogisticsApplication.postman_collection.json`
+
+Что она проверяет:
+
+- полный CRUD flow;
+- `search` через `JPQL` и `NATIVE`;
+- пагинацию;
+- кэш (`fromCache`);
+- demo endpoint-ы транзакций;
+- cleanup данных.
+
+## Запуск и проверка
+
+Установка/сборка:
 
 ```bash
-mvn spring-boot:run
+./mvnw clean verify
 ```
 
-Запуск приложения с PostgreSQL:
+Запуск приложения (H2):
 
 ```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=postgres
+./mvnw spring-boot:run
+```
+
+Запуск приложения (PostgreSQL):
+
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres
+```
+
+Тесты:
+
+```bash
+./mvnw test
 ```
