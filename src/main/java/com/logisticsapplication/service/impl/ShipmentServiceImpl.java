@@ -112,14 +112,18 @@ public class ShipmentServiceImpl implements ShipmentService {
         String normalizedCustomerEmail = normalize(customerEmail);
         String normalizedCargoName = normalize(cargoName);
         ShipmentSearchCacheKey cacheKey = new ShipmentSearchCacheKey(
-                normalizedCustomerEmail,
-                normalizedCargoName,
-                arrivalFrom,
-                arrivalTo,
-                queryType.name(),
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
-                pageable.getSort().toString()
+                new ShipmentSearchCacheKey.SearchCriteria(
+                        normalizedCustomerEmail,
+                        normalizedCargoName,
+                        arrivalFrom,
+                        arrivalTo,
+                        queryType.name()
+                ),
+                new ShipmentSearchCacheKey.PageDescriptor(
+                        pageable.getPageNumber(),
+                        pageable.getPageSize(),
+                        pageable.getSort().toString()
+                )
         );
 
         PageResponse<ShipmentResponse> cached = shipmentSearchIndex.get(cacheKey).orElse(null);
