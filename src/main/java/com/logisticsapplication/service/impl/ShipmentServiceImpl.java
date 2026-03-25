@@ -33,8 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -142,7 +140,7 @@ public class ShipmentServiceImpl implements ShipmentService {
             );
         }
 
-        Page<Long> shipmentIds = pageable.getSort().isSorted()
+        SearchPage searchPage = pageable.getSort().isSorted()
                 ? findSortedPage(
                         normalizedCustomerEmail,
                         normalizedCargoName,
@@ -161,11 +159,11 @@ public class ShipmentServiceImpl implements ShipmentService {
                 );
 
         PageResponse<ShipmentResponse> response = new PageResponse<>(
-                buildOrderedResponses(shipmentIds.getContent()),
-                shipmentIds.getNumber(),
-                shipmentIds.getSize(),
-                shipmentIds.getTotalElements(),
-                shipmentIds.getTotalPages(),
+                searchPage.content(),
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                searchPage.totalElements(),
+                calculateTotalPages(searchPage.totalElements(), pageable.getPageSize()),
                 false,
                 queryType.name()
         );
@@ -336,7 +334,7 @@ public class ShipmentServiceImpl implements ShipmentService {
                 .toList();
     }
 
-    private Page<Long> findUnsortedPage(
+    private SearchPage findUnsortedPage(
             String customerEmail,
             String cargoName,
             LocalDateTime arrivalFrom,
@@ -344,24 +342,23 @@ public class ShipmentServiceImpl implements ShipmentService {
             ShipmentSearchQueryType queryType,
             Pageable pageable
     ) {
-        return queryType == ShipmentSearchQueryType.NATIVE
+        List<Long> allIds = queryType == ShipmentSearchQueryType.NATIVE
                 ? shipmentRepository.searchIdsNative(
                         customerEmail,
                         cargoName,
                         arrivalFrom,
-                        arrivalTo,
-                        pageable
+                        arrivalTo
                 )
                 : shipmentRepository.searchIdsJpql(
                         customerEmail,
                         cargoName,
                         arrivalFrom,
-                        arrivalTo,
-                        pageable
+                        arrivalTo
                 );
+        return buildPageFromIds(allIds, pageable);
     }
 
-    private Page<Long> findSortedPage(
+    private SearchPage findSortedPage(
             String customerEmail,
             String cargoName,
             LocalDateTime arrivalFrom,
@@ -386,16 +383,27 @@ public class ShipmentServiceImpl implements ShipmentService {
                 buildOrderedResponses(allIds),
                 pageable.getSort()
         );
-        List<Long> sortedIds = sortedResponses.stream()
-                .map(ShipmentResponse::getId)
-                .toList();
-
         int fromIndex = Math.toIntExact(pageable.getOffset());
-        if (fromIndex >= sortedIds.size()) {
-            return new PageImpl<>(List.of(), pageable, sortedIds.size());
+        if (fromIndex >= sortedResponses.size()) {
+            return new SearchPage(List.of(), sortedResponses.size());
         }
-        int toIndex = Math.min(fromIndex + pageable.getPageSize(), sortedIds.size());
-        return new PageImpl<>(sortedIds.subList(fromIndex, toIndex), pageable, sortedIds.size());
+        int toIndex = Math.min(fromIndex + pageable.getPageSize(), sortedResponses.size());
+        return new SearchPage(
+                sortedResponses.subList(fromIndex, toIndex),
+                sortedResponses.size()
+        );
+    }
+
+    private SearchPage buildPageFromIds(List<Long> allIds, Pageable pageable) {
+        int fromIndex = Math.toIntExact(pageable.getOffset());
+        if (fromIndex >= allIds.size()) {
+            return new SearchPage(List.of(), allIds.size());
+        }
+        int toIndex = Math.min(fromIndex + pageable.getPageSize(), allIds.size());
+        return new SearchPage(
+                buildOrderedResponses(allIds.subList(fromIndex, toIndex)),
+                allIds.size()
+        );
     }
 
     private List<ShipmentResponse> sortResponses(List<ShipmentResponse> responses, Sort sort) {
@@ -444,6 +452,16 @@ public class ShipmentServiceImpl implements ShipmentService {
             return null;
         }
         return order.isAscending() ? comparator : comparator.reversed();
+    }
+
+    private int calculateTotalPages(long totalElements, int pageSize) {
+        if (pageSize <= 0) {
+            return 0;
+        }
+        return (int) Math.ceil((double) totalElements / pageSize);
+    }
+
+    private record SearchPage(List<ShipmentResponse> content, long totalElements) {
     }
 
     private String normalize(String value) {

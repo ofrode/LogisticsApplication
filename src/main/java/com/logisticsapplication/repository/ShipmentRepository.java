@@ -16,11 +16,33 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
     @Query("select s from Shipment s where s.status.code = :statusCode")
     List<Shipment> findByStatusCode(String statusCode);
 
-    @EntityGraph(attributePaths = {"customer", "manager", "cargoes", "schedule", "vehicles"})
+    @EntityGraph(attributePaths = {
+            "status",
+            "customer",
+            "customer.role",
+            "manager",
+            "manager.role",
+            "cargoes",
+            "schedule",
+            "vehicles",
+            "vehicles.assignedCarrier",
+            "vehicles.assignedCarrier.role"
+    })
     @Query("select s from Shipment s")
     List<Shipment> findAllWithDetails();
 
-    @EntityGraph(attributePaths = {"customer", "manager", "cargoes", "schedule", "vehicles"})
+    @EntityGraph(attributePaths = {
+            "status",
+            "customer",
+            "customer.role",
+            "manager",
+            "manager.role",
+            "cargoes",
+            "schedule",
+            "vehicles",
+            "vehicles.assignedCarrier",
+            "vehicles.assignedCarrier.role"
+    })
     @Query("""
             select s
             from Shipment s
@@ -29,7 +51,18 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
             """)
     List<Shipment> findByStatusCodeOrderByIdAsc(String statusCode);
 
-    @EntityGraph(attributePaths = {"customer", "manager", "cargoes", "schedule", "vehicles"})
+    @EntityGraph(attributePaths = {
+            "status",
+            "customer",
+            "customer.role",
+            "manager",
+            "manager.role",
+            "cargoes",
+            "schedule",
+            "vehicles",
+            "vehicles.assignedCarrier",
+            "vehicles.assignedCarrier.role"
+    })
     Optional<Shipment> findDetailedById(Long id);
 
     @Query("""
@@ -61,6 +94,7 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
               and lower(cargo.name) like lower(concat('%', coalesce(:cargoName, cargo.name), '%'))
               and schedule.arrivalAt >= coalesce(:arrivalFrom, schedule.arrivalAt)
               and schedule.arrivalAt <= coalesce(:arrivalTo, schedule.arrivalAt)
+            order by s.id asc
             """)
     List<Long> searchIdsJpql(
             @Param("customerEmail") String customerEmail,
@@ -111,6 +145,7 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
                         cast(:arrivalTo as timestamp),
                         schedule.arrival_at
                       )
+                    order by s.id asc
                     """,
             nativeQuery = true
     )
@@ -153,7 +188,18 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
             @Param("arrivalTo") LocalDateTime arrivalTo
     );
 
-    @EntityGraph(attributePaths = {"customer", "manager", "cargoes", "schedule", "vehicles"})
+    @EntityGraph(attributePaths = {
+            "status",
+            "customer",
+            "customer.role",
+            "manager",
+            "manager.role",
+            "cargoes",
+            "schedule",
+            "vehicles",
+            "vehicles.assignedCarrier",
+            "vehicles.assignedCarrier.role"
+    })
     @Query("select distinct s from Shipment s where s.id in :ids")
     List<Shipment> findAllDetailedByIdIn(@Param("ids") List<Long> ids);
 }

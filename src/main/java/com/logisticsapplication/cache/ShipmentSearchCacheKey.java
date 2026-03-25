@@ -30,6 +30,14 @@ public final class ShipmentSearchCacheKey {
         return Objects.hash(criteria, page);
     }
 
+    @Override
+    public String toString() {
+        return "ShipmentSearchCacheKey{"
+                + "criteria=" + criteria
+                + ", page=" + page
+                + '}';
+    }
+
     public record SearchCriteria(
             String customerEmail,
             String cargoName,
