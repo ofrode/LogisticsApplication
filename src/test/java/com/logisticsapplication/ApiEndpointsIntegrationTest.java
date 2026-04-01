@@ -18,7 +18,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +34,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -409,27 +407,25 @@ class ApiEndpointsIntegrationTest {
                 vehicle.getId()
         );
 
-        ServletException partialSaveException = assertThrows(
-                ServletException.class,
-                () -> mockMvc.perform(
-                                post("/api/shipments/demo/partial-save")
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .content(body)
-                        )
-        );
-        assertThat(partialSaveException.getCause())
-                .hasMessageContaining("Intentional failure after partial save");
+        mockMvc.perform(
+                        post("/api/shipments/demo/partial-save")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body)
+                )
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.error").value("INTERNAL_SERVER_ERROR"))
+                .andExpect(jsonPath("$.message").value("Unexpected internal server error"));
 
-        ServletException rollbackException = assertThrows(
-                ServletException.class,
-                () -> mockMvc.perform(
-                                post("/api/shipments/demo/rollback")
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .content(body.replace("DEMO-", "ROLL-"))
-                        )
-        );
-        assertThat(rollbackException.getCause())
-                .hasMessageContaining("Intentional failure after partial save");
+        mockMvc.perform(
+                        post("/api/shipments/demo/rollback")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body.replace("DEMO-", "ROLL-"))
+                )
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.error").value("INTERNAL_SERVER_ERROR"))
+                .andExpect(jsonPath("$.message").value("Unexpected internal server error"));
     }
 
     private UserRoleLookup getRole(UserRole role) {
