@@ -38,6 +38,11 @@ public class GlobalExceptionHandler {
         for (FieldError fieldError : exception.getBindingResult().getFieldErrors()) {
             fieldErrors.put(fieldError.getField(), fieldError.getDefaultMessage());
         }
+        log.warn(
+                "Validation failed for path={}: fieldErrors={}",
+                request.getRequestURI(),
+                fieldErrors
+        );
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
                 VALIDATION_FAILED_MESSAGE,
@@ -60,6 +65,11 @@ public class GlobalExceptionHandler {
                         )
                 )
         );
+        log.warn(
+                "Validation failed for path={}: fieldErrors={}",
+                request.getRequestURI(),
+                fieldErrors
+        );
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
                 VALIDATION_FAILED_MESSAGE,
@@ -80,6 +90,11 @@ public class GlobalExceptionHandler {
                         violation.getMessage()
                 )
         );
+        log.warn(
+                "Validation failed for path={}: fieldErrors={}",
+                request.getRequestURI(),
+                fieldErrors
+        );
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
                 VALIDATION_FAILED_MESSAGE,
@@ -95,6 +110,12 @@ public class GlobalExceptionHandler {
     ) {
         HttpStatusCode statusCode = exception.getStatusCode();
         HttpStatus status = HttpStatus.valueOf(statusCode.value());
+        log.warn(
+                "Request failed for path={}: status={} reason={}",
+                request.getRequestURI(),
+                status.value(),
+                exception.getReason()
+        );
         return buildResponse(
                 status,
                 exception.getReason(),
@@ -112,6 +133,11 @@ public class GlobalExceptionHandler {
             Exception exception,
             HttpServletRequest request
     ) {
+        log.warn(
+                "Bad request for path={}: {}",
+                request.getRequestURI(),
+                exception.getMessage()
+        );
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
                 exception.getMessage(),

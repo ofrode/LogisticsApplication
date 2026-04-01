@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -43,14 +42,12 @@ public class ShipmentController {
 
     @PostMapping
     @Operation(summary = "Создать отправление")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Отправление создано"),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Ошибка валидации",
-                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-            )
-    })
+    @ApiResponse(responseCode = "200", description = "Отправление создано")
+    @ApiResponse(
+            responseCode = "400",
+            description = "Ошибка валидации",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
     public ResponseEntity<ShipmentResponse> create(@Valid @RequestBody ShipmentRequest request) {
         return ResponseEntity.ok(shipmentService.create(request));
     }

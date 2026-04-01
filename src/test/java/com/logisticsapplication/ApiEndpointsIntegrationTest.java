@@ -33,7 +33,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -426,6 +425,76 @@ class ApiEndpointsIntegrationTest {
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.error").value("INTERNAL_SERVER_ERROR"))
                 .andExpect(jsonPath("$.message").value("Unexpected internal server error"));
+    }
+
+    @Test
+    void shipmentCreationFailsWhenCargoWeightExceedsThirtyTons() throws Exception {
+        String body = """
+                {
+                  "trackingNumber": "TEMP-SHIP-OVERWEIGHT",
+                  "originCity": "Minsk",
+                  "destinationCity": "Warsaw",
+                  "status": "CREATED",
+                  "customerId": %d,
+                  "managerId": %d,
+                  "vehicleIds": [%d],
+                  "cargoes": [
+                    {
+                      "name": "Heavy Machinery",
+                      "weightKg": 30000.01
+                    }
+                  ],
+                  "schedule": {
+                    "orderCreatedAt": "2026-03-24T10:00:00",
+                    "orderReceivedAt": "2026-03-24T12:00:00",
+                    "arrivalAt": "2026-03-27T14:00:00"
+                  }
+                }
+                """.formatted(customer.getId(), manager.getId(), vehicle.getId());
+
+        mockMvc.perform(
+                        post("/api/shipments")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors['cargoes[0].weightKg']")
+                        .value("weightKg must be less than or equal to 30000"));
+    }
+
+    @Test
+    void shipmentCreationFailsWhenScheduleDatesOrderIsInvalid() throws Exception {
+        String body = """
+                {
+                  "trackingNumber": "TEMP-SHIP-BAD-DATES",
+                  "originCity": "Minsk",
+                  "destinationCity": "Warsaw",
+                  "status": "CREATED",
+                  "customerId": %d,
+                  "managerId": %d,
+                  "vehicleIds": [%d],
+                  "cargoes": [
+                    {
+                      "name": "Documents",
+                      "weightKg": 20.00
+                    }
+                  ],
+                  "schedule": {
+                    "orderCreatedAt": "2026-03-24T10:00:00",
+                    "orderReceivedAt": "2020-03-24T12:00:00",
+                    "arrivalAt": "2026-03-27T14:00:00"
+                  }
+                }
+                """.formatted(customer.getId(), manager.getId(), vehicle.getId());
+
+        mockMvc.perform(
+                        post("/api/shipments")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors['schedule.orderReceivedAtValid']")
+                        .value("orderReceivedAt must be equal to or after orderCreatedAt"));
     }
 
     private UserRoleLookup getRole(UserRole role) {

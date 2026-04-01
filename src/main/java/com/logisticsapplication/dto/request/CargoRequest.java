@@ -1,6 +1,7 @@
 package com.logisticsapplication.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -25,6 +26,7 @@ public class CargoRequest {
 
     @NotNull
     @Positive
-    @Schema(description = "Вес (кг)", example = "1200.5")
+    @DecimalMax(value = "30000", message = "weightKg must be less than or equal to 30000")
+    @Schema(description = "Вес (кг), максимум 30000", example = "1200.5")
     private BigDecimal weightKg;
 }
