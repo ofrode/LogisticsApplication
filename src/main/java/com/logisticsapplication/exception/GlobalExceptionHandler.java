@@ -26,6 +26,8 @@ import org.springframework.web.server.ResponseStatusException;
 public class GlobalExceptionHandler {
 
     private static final String VALIDATION_FAILED_MESSAGE = "Validation failed";
+    private static final String VALIDATION_FAILED_LOG_MESSAGE =
+            "Validation failed for path={}: fieldErrors={}";
     private static final String CONFLICT_MESSAGE =
             "Conflict: resource already exists or violates constraints";
 
@@ -39,7 +41,7 @@ public class GlobalExceptionHandler {
             fieldErrors.put(fieldError.getField(), fieldError.getDefaultMessage());
         }
         log.warn(
-                "Validation failed for path={}: fieldErrors={}",
+                VALIDATION_FAILED_LOG_MESSAGE,
                 request.getRequestURI(),
                 fieldErrors
         );
@@ -66,7 +68,7 @@ public class GlobalExceptionHandler {
                 )
         );
         log.warn(
-                "Validation failed for path={}: fieldErrors={}",
+                VALIDATION_FAILED_LOG_MESSAGE,
                 request.getRequestURI(),
                 fieldErrors
         );
@@ -91,7 +93,7 @@ public class GlobalExceptionHandler {
                 )
         );
         log.warn(
-                "Validation failed for path={}: fieldErrors={}",
+                VALIDATION_FAILED_LOG_MESSAGE,
                 request.getRequestURI(),
                 fieldErrors
         );
