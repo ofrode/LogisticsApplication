@@ -68,16 +68,19 @@ logisticsapplication/
     │   │   └── com/
     │   │       └── logisticsapplication/
     │   │           ├── LogisticsApplication.java
+    │   │           ├── aspect/
+    │   │           │   └── ServiceExecutionLoggingAspect.java
+    │   │           ├── cache/
+    │   │           │   ├── ShipmentSearchCacheKey.java
+    │   │           │   └── ShipmentSearchIndex.java
     │   │           ├── controller/
     │   │           │   ├── AppUserController.java
     │   │           │   ├── HealthController.java
     │   │           │   ├── ShipmentController.java
     │   │           │   └── VehicleController.java
-    │   │           ├── cache/
-    │   │           │   ├── ShipmentSearchCacheKey.java
-    │   │           │   └── ShipmentSearchIndex.java
     │   │           ├── config/
-    │   │           │   └── LookupDataInitializer.java
+    │   │           │   ├── LookupDataInitializer.java
+    │   │           │   └── OpenApiConfig.java
     │   │           ├── service/
     │   │           │   ├── AppUserService.java
     │   │           │   ├── ShipmentService.java
@@ -118,7 +121,10 @@ logisticsapplication/
     │   │           │       ├── PageResponse.java
     │   │           │       ├── ShipmentResponse.java
     │   │           │       ├── ShipmentScheduleResponse.java
-    │   │           │       └── VehicleResponse.java
+    │   │           │       ├── VehicleResponse.java
+    │   │           │       └── ApiErrorResponse.java
+    │   │           ├── exception/
+    │   │           │   └── GlobalExceptionHandler.java
     │   │           └── mapper/
     │   │               ├── AppUserMapper.java
     │   │               ├── ShipmentMapper.java
@@ -126,6 +132,7 @@ logisticsapplication/
     │   └── resources/
     │       ├── application.properties
     │       ├── application-postgres.properties
+    │       ├── logback-spring.xml
     │       └── sql/
     │           ├── fix_app_users_table_postgres.sql
     │           └── migrate_roles_and_statuses_to_lookup_tables.sql
@@ -133,6 +140,7 @@ logisticsapplication/
         ├── java/
         │   └── com/
         │       └── logisticsapplication/
+        │           ├── ApiEndpointsIntegrationTest.java
         │           ├── LogisticsapplicationApplicationTests.java
         │           └── ShipmentTransactionIntegrationTest.java
         └── resources/
