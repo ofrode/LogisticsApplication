@@ -24,6 +24,8 @@ import org.springframework.web.server.ResponseStatusException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final String VALIDATION_FAILED_MESSAGE = "Validation failed";
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleMethodArgumentNotValid(
             MethodArgumentNotValidException exception,
@@ -35,7 +37,7 @@ public class GlobalExceptionHandler {
         }
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
-                "Validation failed",
+                VALIDATION_FAILED_MESSAGE,
                 request,
                 fieldErrors
         );
@@ -57,7 +59,7 @@ public class GlobalExceptionHandler {
         );
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
-                "Validation failed",
+                VALIDATION_FAILED_MESSAGE,
                 request,
                 fieldErrors
         );
@@ -77,7 +79,7 @@ public class GlobalExceptionHandler {
         );
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
-                "Validation failed",
+                VALIDATION_FAILED_MESSAGE,
                 request,
                 fieldErrors
         );
