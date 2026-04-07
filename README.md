@@ -5,12 +5,16 @@ REST API для управления логистическими заказам
 Проект покрывает:
 
 - CRUD для пользователей, транспорта и заказов;
+- bulk-операцию массового создания `Shipment`;
 - сложные связи JPA;
 - демонстрацию `N+1` и оптимизацию через `@EntityGraph`;
-- транзакционное поведение (`partial-save` vs `rollback`);
+- транзакционное поведение (`partial-save` vs `rollback`) для single и bulk сценариев;
 - расширенный поиск `Shipment` через `JPQL` и `native query`;
 - пагинацию (`Pageable`);
-- in-memory индекс (`HashMap`) для кэширования результатов поиска.
+- in-memory индекс (`HashMap`) для кэширования результатов поиска;
+- использование `Stream API` и `Optional` в сервисном слое;
+- unit- и integration-тесты;
+- CI-анализ с `JaCoCo` и `SonarQube`.
 
 ## Стек
 
@@ -22,6 +26,10 @@ REST API для управления логистическими заказам
 - `PostgreSQL`
 - `Maven`
 - `Checkstyle`
+- `Mockito`
+- `JaCoCo`
+- `GitHub Actions`
+- `SonarQube`
 
 ## Модель данных
 
@@ -50,10 +58,86 @@ REST API для управления логистическими заказам
 - `AppUser -> UserRoleLookup`: `ManyToOne`
 - `Shipment -> ShipmentStatusLookup`: `ManyToOne`
 
+## Структурная схема
+
+```mermaid
+flowchart LR
+    client["Client / Postman / Swagger UI"]
+
+    subgraph api["API layer"]
+        appUserController["AppUserController"]
+        vehicleController["VehicleController"]
+        shipmentController["ShipmentController
+CRUD / bulk / search / demo"]
+        healthController["HealthController"]
+        exceptionHandler["GlobalExceptionHandler"]
+    end
+
+    subgraph service["Service layer"]
+        appUserService["AppUserServiceImpl"]
+        vehicleService["VehicleServiceImpl"]
+        shipmentService["ShipmentServiceImpl
+@Transactional / Stream API / Optional"]
+    end
+
+    subgraph infra["Infrastructure"]
+        mapper["Mappers"]
+        cache["ShipmentSearchIndex
+HashMap cache"]
+        aspect["ServiceExecutionLoggingAspect"]
+        lookupInit["LookupDataInitializer"]
+    end
+
+    subgraph persistence["Persistence layer"]
+        appUserRepository["AppUserRepository"]
+        vehicleRepository["VehicleRepository"]
+        shipmentRepository["ShipmentRepository"]
+        cargoRepository["CargoRepository"]
+        scheduleRepository["ShipmentScheduleRepository"]
+        lookupRepositories["Lookup repositories"]
+    end
+
+    subgraph data["Database"]
+        h2[("H2")]
+        postgres[("PostgreSQL")]
+    end
+
+    tests["JUnit / Mockito / Integration tests"]
+    ci["GitHub Actions
+JaCoCo -> SonarQube"]
+
+    client --> api
+    api --> service
+    api --> exceptionHandler
+    service --> mapper
+    service --> cache
+    service --> aspect
+    service --> lookupInit
+    service --> persistence
+    persistence --> data
+    tests --> service
+    tests --> api
+    ci --> tests
+```
+
+Коротко по слоям:
+
+- `controller` принимает HTTP-запросы, валидирует входные DTO и делегирует работу сервисам;
+- `service` содержит бизнес-логику: CRUD, bulk-операции, транзакции, поиск, кэш и проверки;
+- `repository` работает с JPA и БД;
+- `mapper` преобразует entity в response DTO;
+- `cache` хранит результаты поиска `Shipment`;
+- `aspect` логирует время выполнения сервисных методов;
+- `test` проверяет приложение на уровне unit и integration;
+- `.github/workflows` запускает сборку, тесты и отправку coverage в SonarQube.
+
 ## Структура проекта
 
 ```text
 logisticsapplication/
+├── .github/
+│   └── workflows/
+│       └── ci-sonarqube.yml
 ├── pom.xml
 ├── README.md
 ├── Task.md
@@ -142,7 +226,12 @@ logisticsapplication/
         │       └── logisticsapplication/
         │           ├── ApiEndpointsIntegrationTest.java
         │           ├── LogisticsapplicationApplicationTests.java
-        │           └── ShipmentTransactionIntegrationTest.java
+        │           ├── ShipmentTransactionIntegrationTest.java
+        │           └── service/
+        │               └── impl/
+        │                   ├── AppUserServiceImplTest.java
+        │                   ├── ShipmentServiceImplTest.java
+        │                   └── VehicleServiceImplTest.java
         └── resources/
             └── application-test.properties
 ```
@@ -154,6 +243,7 @@ logisticsapplication/
 - `GET/POST/PUT/DELETE /api/users`
 - `GET/POST/PUT/DELETE /api/vehicles`
 - `GET/POST/PUT/DELETE /api/shipments`
+- `POST /api/shipments/bulk`
 - `GET /api/health`
 
 ### N+1 демонстрация
@@ -165,6 +255,8 @@ logisticsapplication/
 
 - `POST /api/shipments/demo/partial-save` (намеренный fail без общего rollback)
 - `POST /api/shipments/demo/rollback` (намеренный fail c rollback)
+- `POST /api/shipments/bulk/demo/partial-save` (bulk без общего rollback)
+- `POST /api/shipments/bulk/demo/rollback` (bulk c rollback)
 
 ### Расширенный поиск Shipment
 
@@ -252,6 +344,13 @@ psql -h localhost -U logistics_user -d logistics_db -f "src/main/resources/sql/m
 - кэш (`fromCache`);
 - demo endpoint-ы транзакций;
 - cleanup данных.
+
+## CI и Coverage
+
+- workflow: `.github/workflows/ci-sonarqube.yml`;
+- сборка выполняет `./mvnw -B clean verify`;
+- `JaCoCo` генерирует `target/site/jacoco/jacoco.xml`;
+- self-hosted runner может отправлять анализ в локальный `SonarQube` на `http://localhost:9000`.
 
 ## Запуск и проверка
 

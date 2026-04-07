@@ -40,6 +40,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
           SONAR_PROJECT_NAME: ${{ vars.SONAR_PROJECT_NAME }}
+          SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION }}
         run: |
           if [ -z "${SONAR_HOST_URL}" ]; then
             SONAR_HOST_URL="http://localhost:9000"
@@ -50,16 +51,35 @@ jobs:
             exit 1
           fi
 
-          if [ -z "${SONAR_PROJECT_KEY}" ]; then
-            SONAR_PROJECT_KEY="com:logisticsapplication"
-          fi
-
           if [ -z "${SONAR_PROJECT_NAME}" ]; then
             SONAR_PROJECT_NAME="logisticsapplication"
           fi
 
-          ./mvnw -B org.sonarsource.scanner.maven:sonar-maven-plugin:5.5.0.6356:sonar \
-            -Dsonar.projectKey="${SONAR_PROJECT_KEY}" \
-            -Dsonar.projectName="${SONAR_PROJECT_NAME}" \
-            -Dsonar.host.url="${SONAR_HOST_URL}" \
-            -Dsonar.token="${SONAR_TOKEN}"
+          if [ "${SONAR_HOST_URL}" = "https://sonarcloud.io" ] || [ "${SONAR_HOST_URL}" = "https://sonarqubecloud.io" ]; then
+            if [ -z "${SONAR_PROJECT_KEY}" ]; then
+              echo "Set GitHub variable SONAR_PROJECT_KEY for SonarQube Cloud analysis."
+              exit 1
+            fi
+
+            if [ -z "${SONAR_ORGANIZATION}" ]; then
+              echo "Set GitHub variable SONAR_ORGANIZATION for SonarQube Cloud analysis."
+              exit 1
+            fi
+
+            ./mvnw -B org.sonarsource.scanner.maven:sonar-maven-plugin:5.5.0.6356:sonar \
+              -Dsonar.projectKey="${SONAR_PROJECT_KEY}" \
+              -Dsonar.projectName="${SONAR_PROJECT_NAME}" \
+              -Dsonar.host.url="${SONAR_HOST_URL}" \
+              -Dsonar.organization="${SONAR_ORGANIZATION}" \
+              -Dsonar.token="${SONAR_TOKEN}"
+          else
+            if [ -z "${SONAR_PROJECT_KEY}" ]; then
+              SONAR_PROJECT_KEY="com:logisticsapplication"
+            fi
+
+            ./mvnw -B org.sonarsource.scanner.maven:sonar-maven-plugin:5.5.0.6356:sonar \
+              -Dsonar.projectKey="${SONAR_PROJECT_KEY}" \
+              -Dsonar.projectName="${SONAR_PROJECT_NAME}" \
+              -Dsonar.host.url="${SONAR_HOST_URL}" \
+              -Dsonar.token="${SONAR_TOKEN}"
+          fi
