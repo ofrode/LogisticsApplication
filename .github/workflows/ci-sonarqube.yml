@@ -2,12 +2,11 @@ name: CI and SonarQube
 
 on:
   push:
-  pull_request:
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: read
     steps:
@@ -35,15 +34,19 @@ jobs:
           if-no-files-found: error
 
       - name: Publish SonarQube analysis
-        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         env:
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || secrets.SONAR_HOST_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
           SONAR_PROJECT_NAME: ${{ vars.SONAR_PROJECT_NAME }}
         run: |
-          if [ -z "${SONAR_HOST_URL}" ] || [ -z "${SONAR_TOKEN}" ]; then
-            echo "Set GitHub secrets SONAR_HOST_URL and SONAR_TOKEN before running SonarQube analysis."
+          if [ -z "${SONAR_HOST_URL}" ]; then
+            SONAR_HOST_URL="http://localhost:9000"
+          fi
+
+          if [ -z "${SONAR_TOKEN}" ]; then
+            echo "Set GitHub secret SONAR_TOKEN before running SonarQube analysis."
             exit 1
           fi
 
@@ -55,7 +58,7 @@ jobs:
             SONAR_PROJECT_NAME="logisticsapplication"
           fi
 
-          ./mvnw -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          ./mvnw -B org.sonarsource.scanner.maven:sonar-maven-plugin:5.5.0.6356:sonar \
             -Dsonar.projectKey="${SONAR_PROJECT_KEY}" \
             -Dsonar.projectName="${SONAR_PROJECT_NAME}" \
             -Dsonar.host.url="${SONAR_HOST_URL}" \
