@@ -65,13 +65,14 @@ class VehicleServiceImplTest {
 
     @Test
     void createRejectsAssignedUserWithoutCarrierRole() {
-        when(appUserRepository.findById(4L)).thenReturn(Optional.of(buildUser(4L, UserRole.CUSTOMER)));
-
-        assertThatThrownBy(() -> vehicleService.create(new VehicleRequest(
+        VehicleRequest request = new VehicleRequest(
                 "TRUCK-FAIL",
                 new BigDecimal("5000.00"),
                 4L
-        )))
+        );
+        when(appUserRepository.findById(4L)).thenReturn(Optional.of(buildUser(4L, UserRole.CUSTOMER)));
+
+        assertThatThrownBy(() -> vehicleService.create(request))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("Assigned user must have role CARRIER");
 

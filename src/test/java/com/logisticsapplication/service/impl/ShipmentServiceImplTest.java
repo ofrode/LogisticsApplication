@@ -130,14 +130,13 @@ class ShipmentServiceImplTest {
     void createBulkRejectsTrackingNumberThatAlreadyExistsInDatabase() {
         Shipment existingShipment = new Shipment();
         existingShipment.setId(77L);
+        List<ShipmentRequest> requests = List.of(
+                buildRequest("BULK-EXISTS", ShipmentStatus.CREATED)
+        );
         when(shipmentRepository.findByTrackingNumber("BULK-EXISTS"))
                 .thenReturn(Optional.of(existingShipment));
 
-        assertThatThrownBy(
-                () -> shipmentService.createBulk(List.of(
-                        buildRequest("BULK-EXISTS", ShipmentStatus.CREATED)
-                ))
-        )
+        assertThatThrownBy(() -> shipmentService.createBulk(requests))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("Tracking number already exists");
 
