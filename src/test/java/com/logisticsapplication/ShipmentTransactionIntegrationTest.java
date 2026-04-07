@@ -147,6 +147,46 @@ class ShipmentTransactionIntegrationTest {
     }
 
     @Test
+    void bulkCreatePersistsAllShipments() {
+        List<ShipmentResponse> created = shipmentService.createBulk(buildBulkRequests("BULK-CREATE"));
+
+        assertThat(created).hasSize(2);
+        assertThat(created).extracting(ShipmentResponse::getTrackingNumber)
+                .containsExactly("BULK-CREATE-001", "BULK-CREATE-002");
+        assertThat(shipmentRepository.count()).isEqualTo(2);
+        assertThat(shipmentScheduleRepository.count()).isEqualTo(2);
+        assertThat(cargoRepository.count()).isEqualTo(4);
+    }
+
+    @Test
+    void bulkPartialSaveDemoLeavesPersistedRows() {
+        List<ShipmentRequest> requests = buildBulkRequests("BULK-PARTIAL");
+
+        assertThrows(
+                IllegalStateException.class,
+                () -> shipmentService.createBulkWithPartialSaveDemo(requests)
+        );
+
+        assertThat(shipmentRepository.count()).isEqualTo(1);
+        assertThat(shipmentScheduleRepository.count()).isEqualTo(1);
+        assertThat(cargoRepository.count()).isEqualTo(2);
+    }
+
+    @Test
+    void bulkRollbackDemoRevertsAllRows() {
+        List<ShipmentRequest> requests = buildBulkRequests("BULK-ROLLBACK");
+
+        assertThrows(
+                IllegalStateException.class,
+                () -> shipmentService.createBulkWithRollbackDemo(requests)
+        );
+
+        assertThat(shipmentRepository.count()).isZero();
+        assertThat(shipmentScheduleRepository.count()).isZero();
+        assertThat(cargoRepository.count()).isZero();
+    }
+
+    @Test
     void updateShipmentReplacesAggregateData() {
         ShipmentResponse created = shipmentService.create(buildRequest("UPDATE-001"));
         ShipmentRequest updateRequest = new ShipmentRequest(
@@ -277,6 +317,13 @@ class ShipmentTransactionIntegrationTest {
                         LocalDateTime.now().plusHours(2),
                         LocalDateTime.now().plusDays(1)
                 )
+        );
+    }
+
+    private List<ShipmentRequest> buildBulkRequests(String prefix) {
+        return List.of(
+                buildRequest(prefix + "-001"),
+                buildRequest(prefix + "-002")
         );
     }
 }

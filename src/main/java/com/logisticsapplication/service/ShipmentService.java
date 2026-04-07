@@ -13,6 +13,8 @@ public interface ShipmentService {
 
     ShipmentResponse create(ShipmentRequest request);
 
+    List<ShipmentResponse> createBulk(List<ShipmentRequest> requests);
+
     ShipmentResponse update(Long id, ShipmentRequest request);
 
     ShipmentResponse getById(Long id);
@@ -33,4 +35,8 @@ public interface ShipmentService {
     ShipmentResponse createWithPartialSaveDemo(ShipmentRequest request);
 
     ShipmentResponse createWithRollbackDemo(ShipmentRequest request);
+
+    List<ShipmentResponse> createBulkWithPartialSaveDemo(List<ShipmentRequest> requests);
+
+    List<ShipmentResponse> createBulkWithRollbackDemo(List<ShipmentRequest> requests);
 }

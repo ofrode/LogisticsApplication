@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -52,6 +53,20 @@ public class ShipmentController {
         return ResponseEntity.ok(shipmentService.create(request));
     }
 
+    @PostMapping("/bulk")
+    @Operation(summary = "Массово создать отправления")
+    @ApiResponse(responseCode = "200", description = "Отправления созданы")
+    @ApiResponse(
+            responseCode = "400",
+            description = "Ошибка валидации",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
+    public ResponseEntity<List<ShipmentResponse>> createBulk(
+            @RequestBody @NotEmpty List<@Valid ShipmentRequest> requests
+    ) {
+        return ResponseEntity.ok(shipmentService.createBulk(requests));
+    }
+
     @PostMapping("/demo/partial-save")
     @Operation(summary = "Демо частичного сохранения без транзакционного отката")
     public ResponseEntity<ShipmentResponse> createWithPartialSave(
@@ -66,6 +81,22 @@ public class ShipmentController {
             @Valid @RequestBody ShipmentRequest request
     ) {
         return ResponseEntity.ok(shipmentService.createWithRollbackDemo(request));
+    }
+
+    @PostMapping("/bulk/demo/partial-save")
+    @Operation(summary = "Демо bulk-операции без транзакционного отката")
+    public ResponseEntity<List<ShipmentResponse>> createBulkWithPartialSave(
+            @RequestBody @NotEmpty List<@Valid ShipmentRequest> requests
+    ) {
+        return ResponseEntity.ok(shipmentService.createBulkWithPartialSaveDemo(requests));
+    }
+
+    @PostMapping("/bulk/demo/rollback")
+    @Operation(summary = "Демо bulk-операции с транзакционным откатом")
+    public ResponseEntity<List<ShipmentResponse>> createBulkWithRollback(
+            @RequestBody @NotEmpty List<@Valid ShipmentRequest> requests
+    ) {
+        return ResponseEntity.ok(shipmentService.createBulkWithRollbackDemo(requests));
     }
 
     @PutMapping("/{id}")

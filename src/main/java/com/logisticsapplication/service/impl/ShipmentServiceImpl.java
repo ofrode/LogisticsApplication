@@ -31,7 +31,9 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -54,11 +56,21 @@ public class ShipmentServiceImpl implements ShipmentService {
     @Override
     @Transactional
     public ShipmentResponse create(ShipmentRequest request) {
-        Shipment shipment = new Shipment();
-        applyAggregate(shipment, request);
-        ShipmentResponse response = ShipmentMapper.toResponse(shipmentRepository.save(shipment));
+        validateTrackingNumberAvailability(request.getTrackingNumber(), null);
+        ShipmentResponse response = saveNewShipment(request);
         shipmentSearchIndex.invalidateAll();
         return response;
+    }
+
+    @Override
+    @Transactional
+    public List<ShipmentResponse> createBulk(List<ShipmentRequest> requests) {
+        validateBulkRequests(requests);
+        List<ShipmentResponse> responses = requests.stream()
+                .map(this::saveNewShipment)
+                .toList();
+        shipmentSearchIndex.invalidateAll();
+        return responses;
     }
 
     @Override
@@ -67,6 +79,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         Shipment shipment = shipmentRepository.findDetailedById(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Shipment not found: " + id)
         );
+        validateTrackingNumberAvailability(request.getTrackingNumber(), id);
         applyAggregate(shipment, request);
         ShipmentResponse response = ShipmentMapper.toResponse(shipmentRepository.save(shipment));
         shipmentSearchIndex.invalidateAll();
@@ -127,48 +140,19 @@ public class ShipmentServiceImpl implements ShipmentService {
                 )
         );
 
-        PageResponse<ShipmentResponse> cached = shipmentSearchIndex.get(cacheKey).orElse(null);
-        if (cached != null) {
-            return new PageResponse<>(
-                    cached.getContent(),
-                    cached.getPage(),
-                    cached.getSize(),
-                    cached.getTotalElements(),
-                    cached.getTotalPages(),
-                    true,
-                    cached.getQueryType()
-            );
-        }
-
-        SearchPage searchPage = pageable.getSort().isSorted()
-                ? findSortedPage(
-                        normalizedCustomerEmail,
-                        normalizedCargoName,
-                        arrivalFrom,
-                        arrivalTo,
-                        queryType,
-                        pageable
-                )
-                : findUnsortedPage(
-                        normalizedCustomerEmail,
-                        normalizedCargoName,
-                        arrivalFrom,
-                        arrivalTo,
-                        queryType,
-                        pageable
+        return shipmentSearchIndex.get(cacheKey)
+                .map(this::copyCachedPage)
+                .orElseGet(
+                        () -> buildAndCacheSearchResponse(
+                                normalizedCustomerEmail,
+                                normalizedCargoName,
+                                arrivalFrom,
+                                arrivalTo,
+                                queryType,
+                                pageable,
+                                cacheKey
+                        )
                 );
-
-        PageResponse<ShipmentResponse> response = new PageResponse<>(
-                searchPage.content(),
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
-                searchPage.totalElements(),
-                calculateTotalPages(searchPage.totalElements(), pageable.getPageSize()),
-                false,
-                queryType.name()
-        );
-        shipmentSearchIndex.put(cacheKey, response);
-        return response;
     }
 
     @Override
@@ -190,6 +174,48 @@ public class ShipmentServiceImpl implements ShipmentService {
     @Transactional
     public ShipmentResponse createWithRollbackDemo(ShipmentRequest request) {
         return saveWithManualSteps(request, true);
+    }
+
+    @Override
+    public List<ShipmentResponse> createBulkWithPartialSaveDemo(List<ShipmentRequest> requests) {
+        try {
+            return saveBulkWithIntentionalFailure(requests);
+        } finally {
+            shipmentSearchIndex.invalidateAll();
+        }
+    }
+
+    @Override
+    @Transactional
+    public List<ShipmentResponse> createBulkWithRollbackDemo(List<ShipmentRequest> requests) {
+        try {
+            return saveBulkWithIntentionalFailure(requests);
+        } finally {
+            shipmentSearchIndex.invalidateAll();
+        }
+    }
+
+    private ShipmentResponse saveNewShipment(ShipmentRequest request) {
+        return ShipmentMapper.toResponse(saveNewShipmentEntity(request));
+    }
+
+    private Shipment saveNewShipmentEntity(ShipmentRequest request) {
+        Shipment shipment = new Shipment();
+        applyAggregate(shipment, request);
+        return shipmentRepository.save(shipment);
+    }
+
+    private List<ShipmentResponse> saveBulkWithIntentionalFailure(List<ShipmentRequest> requests) {
+        validateBulkRequests(requests);
+        for (int index = 0; index < requests.size(); index++) {
+            saveNewShipmentEntity(requests.get(index));
+            if (index == 0) {
+                throw new IllegalStateException(
+                        "Intentional bulk failure after first saved shipment"
+                );
+            }
+        }
+        return List.of();
     }
 
     private ShipmentResponse saveWithManualSteps(
@@ -242,6 +268,50 @@ public class ShipmentServiceImpl implements ShipmentService {
             persistedShipment.getCargoes().add(cargo);
         }
         return ShipmentMapper.toResponse(persistedShipment);
+    }
+
+    private void validateBulkRequests(List<ShipmentRequest> requests) {
+        List<String> duplicateTrackingNumbers = requests.stream()
+                .map(ShipmentRequest::getTrackingNumber)
+                .collect(
+                        Collectors.groupingBy(
+                                trackingNumber -> trackingNumber,
+                                Collectors.counting()
+                        )
+                )
+                .entrySet()
+                .stream()
+                .filter(entry -> entry.getValue() > 1)
+                .map(Map.Entry::getKey)
+                .sorted()
+                .toList();
+        if (!duplicateTrackingNumbers.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Bulk request contains duplicate tracking numbers: "
+                            + duplicateTrackingNumbers
+            );
+        }
+        requests.stream()
+                .map(ShipmentRequest::getTrackingNumber)
+                .forEach(
+                        trackingNumber -> validateTrackingNumberAvailability(
+                                trackingNumber,
+                                null
+                        )
+                );
+    }
+
+    private void validateTrackingNumberAvailability(String trackingNumber, Long currentShipmentId) {
+        shipmentRepository.findByTrackingNumber(trackingNumber)
+                .filter(existingShipment -> currentShipmentId == null
+                        || !existingShipment.getId().equals(currentShipmentId))
+                .ifPresent(existingShipment -> {
+                    throw new ResponseStatusException(
+                            HttpStatus.BAD_REQUEST,
+                            "Tracking number already exists: " + trackingNumber
+                    );
+                });
     }
 
     private void applyAggregate(Shipment shipment, ShipmentRequest request) {
@@ -454,6 +524,58 @@ public class ShipmentServiceImpl implements ShipmentService {
         return order.isAscending() ? comparator : comparator.reversed();
     }
 
+    private PageResponse<ShipmentResponse> copyCachedPage(PageResponse<ShipmentResponse> cached) {
+        return new PageResponse<>(
+                cached.getContent(),
+                cached.getPage(),
+                cached.getSize(),
+                cached.getTotalElements(),
+                cached.getTotalPages(),
+                true,
+                cached.getQueryType()
+        );
+    }
+
+    private PageResponse<ShipmentResponse> buildAndCacheSearchResponse(
+            String customerEmail,
+            String cargoName,
+            LocalDateTime arrivalFrom,
+            LocalDateTime arrivalTo,
+            ShipmentSearchQueryType queryType,
+            Pageable pageable,
+            ShipmentSearchCacheKey cacheKey
+    ) {
+        SearchPage searchPage = pageable.getSort().isSorted()
+                ? findSortedPage(
+                        customerEmail,
+                        cargoName,
+                        arrivalFrom,
+                        arrivalTo,
+                        queryType,
+                        pageable
+                )
+                : findUnsortedPage(
+                        customerEmail,
+                        cargoName,
+                        arrivalFrom,
+                        arrivalTo,
+                        queryType,
+                        pageable
+                );
+
+        PageResponse<ShipmentResponse> response = new PageResponse<>(
+                searchPage.content(),
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                searchPage.totalElements(),
+                calculateTotalPages(searchPage.totalElements(), pageable.getPageSize()),
+                false,
+                queryType.name()
+        );
+        shipmentSearchIndex.put(cacheKey, response);
+        return response;
+    }
+
     private int calculateTotalPages(long totalElements, int pageSize) {
         if (pageSize <= 0) {
             return 0;
@@ -465,10 +587,9 @@ public class ShipmentServiceImpl implements ShipmentService {
     }
 
     private String normalize(String value) {
-        if (value == null) {
-            return null;
-        }
-        String trimmed = value.trim();
-        return trimmed.isEmpty() ? null : trimmed;
+        return Optional.ofNullable(value)
+                .map(String::trim)
+                .filter(trimmed -> !trimmed.isEmpty())
+                .orElse(null);
     }
 }

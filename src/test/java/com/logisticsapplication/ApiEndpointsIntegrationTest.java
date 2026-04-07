@@ -373,6 +373,70 @@ class ApiEndpointsIntegrationTest {
     }
 
     @Test
+    void shipmentBulkEndpointWorks() throws Exception {
+        String bulkBody = """
+                [
+                  {
+                    "trackingNumber": "TEMP-SHIP-BULK-9001",
+                    "originCity": "Minsk",
+                    "destinationCity": "Warsaw",
+                    "status": "CREATED",
+                    "customerId": %d,
+                    "managerId": %d,
+                    "vehicleIds": [%d],
+                    "cargoes": [
+                      {
+                        "name": "Bulk Cargo 1",
+                        "weightKg": 110.00
+                      }
+                    ],
+                    "schedule": {
+                      "orderCreatedAt": "2026-03-24T10:00:00",
+                      "orderReceivedAt": "2026-03-24T12:00:00",
+                      "arrivalAt": "2026-03-27T14:00:00"
+                    }
+                  },
+                  {
+                    "trackingNumber": "TEMP-SHIP-BULK-9002",
+                    "originCity": "Minsk",
+                    "destinationCity": "Vilnius",
+                    "status": "RECEIVED",
+                    "customerId": %d,
+                    "managerId": %d,
+                    "vehicleIds": [%d],
+                    "cargoes": [
+                      {
+                        "name": "Bulk Cargo 2",
+                        "weightKg": 210.00
+                      }
+                    ],
+                    "schedule": {
+                      "orderCreatedAt": "2026-03-25T09:00:00",
+                      "orderReceivedAt": "2026-03-25T10:00:00",
+                      "arrivalAt": "2026-03-28T16:00:00"
+                    }
+                  }
+                ]
+                """.formatted(
+                customer.getId(),
+                manager.getId(),
+                vehicle.getId(),
+                customer.getId(),
+                manager.getId(),
+                vehicle.getId()
+        );
+
+        mockMvc.perform(
+                        post("/api/shipments/bulk")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(bulkBody)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].trackingNumber").value("TEMP-SHIP-BULK-9001"))
+                .andExpect(jsonPath("$[1].trackingNumber").value("TEMP-SHIP-BULK-9002"));
+    }
+
+    @Test
     void demoEndpointsReturnIntentionalServerError() throws Exception {
         String body = """
                 {

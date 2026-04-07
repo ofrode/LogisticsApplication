@@ -13,6 +13,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
 
+    Optional<Shipment> findByTrackingNumber(String trackingNumber);
+
     @Query("select s from Shipment s where s.status.code = :statusCode")
     List<Shipment> findByStatusCode(String statusCode);
 
