@@ -1,0 +1,111 @@
+{
+  "info": {
+    "_postman_id": "b1cc46b0-2a0b-4b4f-9e0c-3f0b31bb1c6a",
+    "name": "Shipment Bulk Operations",
+    "description": "Postman collection for shipment bulk endpoints. Uses the same concrete IDs as the main collection: customerId=5, managerId=6, vehicleIds=[2].",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Bulk Shipments",
+      "item": [
+        {
+          "name": "POST http://localhost:8080/api/shipments/bulk",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"trackingNumber\": \"BULK-A-{{$timestamp}}\",\n    \"originCity\": \"Minsk\",\n    \"destinationCity\": \"Warsaw\",\n    \"status\": \"CREATED\",\n    \"customerId\": 5,\n    \"managerId\": 6,\n    \"vehicleIds\": [2],\n    \"cargoes\": [\n      {\n        \"name\": \"Bulk Cargo 1\",\n        \"weightKg\": 110.00\n      }\n    ],\n    \"schedule\": {\n      \"orderCreatedAt\": \"2026-03-24T10:00:00\",\n      \"orderReceivedAt\": \"2026-03-24T12:00:00\",\n      \"arrivalAt\": \"2026-03-27T14:00:00\"\n    }\n  },\n  {\n    \"trackingNumber\": \"BULK-B-{{$timestamp}}\",\n    \"originCity\": \"Minsk\",\n    \"destinationCity\": \"Vilnius\",\n    \"status\": \"RECEIVED\",\n    \"customerId\": 5,\n    \"managerId\": 6,\n    \"vehicleIds\": [2],\n    \"cargoes\": [\n      {\n        \"name\": \"Bulk Cargo 2\",\n        \"weightKg\": 210.00\n      }\n    ],\n    \"schedule\": {\n      \"orderCreatedAt\": \"2026-03-25T09:00:00\",\n      \"orderReceivedAt\": \"2026-03-25T10:00:00\",\n      \"arrivalAt\": \"2026-03-28T16:00:00\"\n    }\n  }\n]"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/shipments/bulk",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "shipments",
+                "bulk"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bulk Demo Endpoints",
+      "item": [
+        {
+          "name": "POST http://localhost:8080/api/shipments/bulk/demo/partial-save",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"trackingNumber\": \"PARTIAL-BULK-A-{{$timestamp}}\",\n    \"originCity\": \"Minsk\",\n    \"destinationCity\": \"Berlin\",\n    \"status\": \"CREATED\",\n    \"customerId\": 5,\n    \"managerId\": 6,\n    \"vehicleIds\": [2],\n    \"cargoes\": [\n      {\n        \"name\": \"Paper\",\n        \"weightKg\": 150.00\n      }\n    ],\n    \"schedule\": {\n      \"orderCreatedAt\": \"2026-03-24T09:00:00\",\n      \"orderReceivedAt\": \"2026-03-24T11:00:00\",\n      \"arrivalAt\": \"2026-03-25T18:00:00\"\n    }\n  },\n  {\n    \"trackingNumber\": \"PARTIAL-BULK-B-{{$timestamp}}\",\n    \"originCity\": \"Minsk\",\n    \"destinationCity\": \"Hamburg\",\n    \"status\": \"CREATED\",\n    \"customerId\": 5,\n    \"managerId\": 6,\n    \"vehicleIds\": [2],\n    \"cargoes\": [\n      {\n        \"name\": \"Boxes\",\n        \"weightKg\": 200.00\n      }\n    ],\n    \"schedule\": {\n      \"orderCreatedAt\": \"2026-03-24T09:30:00\",\n      \"orderReceivedAt\": \"2026-03-24T11:30:00\",\n      \"arrivalAt\": \"2026-03-26T12:00:00\"\n    }\n  }\n]"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/shipments/bulk/demo/partial-save",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "shipments",
+                "bulk",
+                "demo",
+                "partial-save"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST http://localhost:8080/api/shipments/bulk/demo/rollback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"trackingNumber\": \"ROLLBACK-BULK-A-{{$timestamp}}\",\n    \"originCity\": \"Minsk\",\n    \"destinationCity\": \"Berlin\",\n    \"status\": \"CREATED\",\n    \"customerId\": 5,\n    \"managerId\": 6,\n    \"vehicleIds\": [2],\n    \"cargoes\": [\n      {\n        \"name\": \"Paper\",\n        \"weightKg\": 150.00\n      }\n    ],\n    \"schedule\": {\n      \"orderCreatedAt\": \"2026-03-24T09:00:00\",\n      \"orderReceivedAt\": \"2026-03-24T11:00:00\",\n      \"arrivalAt\": \"2026-03-25T18:00:00\"\n    }\n  },\n  {\n    \"trackingNumber\": \"ROLLBACK-BULK-B-{{$timestamp}}\",\n    \"originCity\": \"Minsk\",\n    \"destinationCity\": \"Hamburg\",\n    \"status\": \"CREATED\",\n    \"customerId\": 5,\n    \"managerId\": 6,\n    \"vehicleIds\": [2],\n    \"cargoes\": [\n      {\n        \"name\": \"Boxes\",\n        \"weightKg\": 200.00\n      }\n    ],\n    \"schedule\": {\n      \"orderCreatedAt\": \"2026-03-24T09:30:00\",\n      \"orderReceivedAt\": \"2026-03-24T11:30:00\",\n      \"arrivalAt\": \"2026-03-26T12:00:00\"\n    }\n  }\n]"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/shipments/bulk/demo/rollback",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "shipments",
+                "bulk",
+                "demo",
+                "rollback"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

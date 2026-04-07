@@ -45,6 +45,11 @@ import org.springframework.web.server.ResponseStatusException;
 @RequiredArgsConstructor
 public class ShipmentServiceImpl implements ShipmentService {
 
+    private static final String PARTIAL_SAVE_DEMO_FAILURE_MESSAGE =
+            "Intentional failure after partial save";
+    private static final String BULK_DEMO_FAILURE_MESSAGE =
+            "Intentional bulk failure after first saved shipment";
+
     private final ShipmentRepository shipmentRepository;
     private final AppUserRepository appUserRepository;
     private final VehicleRepository vehicleRepository;
@@ -210,8 +215,9 @@ public class ShipmentServiceImpl implements ShipmentService {
         for (int index = 0; index < requests.size(); index++) {
             saveNewShipmentEntity(requests.get(index));
             if (index == 0) {
-                throw new IllegalStateException(
-                        "Intentional bulk failure after first saved shipment"
+                throw new ResponseStatusException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        BULK_DEMO_FAILURE_MESSAGE
                 );
             }
         }
@@ -253,7 +259,10 @@ public class ShipmentServiceImpl implements ShipmentService {
 
         if (failAfterFirstCargo) {
             shipmentSearchIndex.invalidateAll();
-            throw new IllegalStateException("Intentional failure after partial save");
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    PARTIAL_SAVE_DEMO_FAILURE_MESSAGE
+            );
         }
 
         for (int index = 1; index < request.getCargoes().size(); index++) {

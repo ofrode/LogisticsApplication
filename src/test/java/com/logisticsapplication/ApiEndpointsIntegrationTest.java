@@ -478,7 +478,7 @@ class ApiEndpointsIntegrationTest {
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.error").value("INTERNAL_SERVER_ERROR"))
-                .andExpect(jsonPath("$.message").value("Unexpected internal server error"));
+                .andExpect(jsonPath("$.message").value("Intentional failure after partial save"));
 
         mockMvc.perform(
                         post("/api/shipments/demo/rollback")
@@ -488,7 +488,7 @@ class ApiEndpointsIntegrationTest {
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.error").value("INTERNAL_SERVER_ERROR"))
-                .andExpect(jsonPath("$.message").value("Unexpected internal server error"));
+                .andExpect(jsonPath("$.message").value("Intentional failure after partial save"));
     }
 
     @Test

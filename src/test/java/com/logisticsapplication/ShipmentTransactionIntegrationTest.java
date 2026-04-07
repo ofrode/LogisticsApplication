@@ -30,6 +30,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.server.ResponseStatusException;
 
 import static com.logisticsapplication.model.ShipmentStatus.CREATED;
 import static com.logisticsapplication.model.ShipmentStatus.IN_TRANSIT;
@@ -128,8 +129,12 @@ class ShipmentTransactionIntegrationTest {
     void partialSaveDemoLeavesPersistedRows() {
         ShipmentRequest request = buildRequest("PARTIAL-001");
 
-        assertThrows(IllegalStateException.class, () -> shipmentService.createWithPartialSaveDemo(request));
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> shipmentService.createWithPartialSaveDemo(request)
+        );
 
+        assertThat(exception.getStatusCode().value()).isEqualTo(500);
         assertThat(shipmentRepository.count()).isEqualTo(1);
         assertThat(shipmentScheduleRepository.count()).isEqualTo(1);
         assertThat(cargoRepository.count()).isEqualTo(1);
@@ -139,8 +144,12 @@ class ShipmentTransactionIntegrationTest {
     void rollbackDemoRevertsAllRows() {
         ShipmentRequest request = buildRequest("ROLLBACK-001");
 
-        assertThrows(IllegalStateException.class, () -> shipmentService.createWithRollbackDemo(request));
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> shipmentService.createWithRollbackDemo(request)
+        );
 
+        assertThat(exception.getStatusCode().value()).isEqualTo(500);
         assertThat(shipmentRepository.count()).isZero();
         assertThat(shipmentScheduleRepository.count()).isZero();
         assertThat(cargoRepository.count()).isZero();
@@ -162,11 +171,12 @@ class ShipmentTransactionIntegrationTest {
     void bulkPartialSaveDemoLeavesPersistedRows() {
         List<ShipmentRequest> requests = buildBulkRequests("BULK-PARTIAL");
 
-        assertThrows(
-                IllegalStateException.class,
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
                 () -> shipmentService.createBulkWithPartialSaveDemo(requests)
         );
 
+        assertThat(exception.getStatusCode().value()).isEqualTo(500);
         assertThat(shipmentRepository.count()).isEqualTo(1);
         assertThat(shipmentScheduleRepository.count()).isEqualTo(1);
         assertThat(cargoRepository.count()).isEqualTo(2);
@@ -176,11 +186,12 @@ class ShipmentTransactionIntegrationTest {
     void bulkRollbackDemoRevertsAllRows() {
         List<ShipmentRequest> requests = buildBulkRequests("BULK-ROLLBACK");
 
-        assertThrows(
-                IllegalStateException.class,
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
                 () -> shipmentService.createBulkWithRollbackDemo(requests)
         );
 
+        assertThat(exception.getStatusCode().value()).isEqualTo(500);
         assertThat(shipmentRepository.count()).isZero();
         assertThat(shipmentScheduleRepository.count()).isZero();
         assertThat(cargoRepository.count()).isZero();
