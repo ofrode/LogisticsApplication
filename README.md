@@ -251,6 +251,7 @@ logisticsapplication/
 - `GET /api/shipments?optimized=false`
 - `GET /api/shipments?optimized=true`
 
+
 ### Транзакционная демонстрация
 
 - `POST /api/shipments/demo/partial-save` (намеренный fail без общего rollback)
