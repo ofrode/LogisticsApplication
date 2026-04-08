@@ -50,7 +50,7 @@ class AppUserServiceImplTest {
             return user;
         });
 
-        AppUserResponse response = appUserService.create(new AppUserRequest(
+        AppUserResponse response = appUserService.create(request(
                 "Maksim",
                 "Efimchik",
                 "maksim@test.local",
@@ -64,8 +64,108 @@ class AppUserServiceImplTest {
     }
 
     @Test
+    void createRejectsMissingRoleLookup() {
+        when(userRoleLookupRepository.findByCode(UserRole.MANAGER.name()))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> appUserService.create(request(
+                "Maksim",
+                "Efimchik",
+                "maksim@test.local",
+                UserRole.MANAGER
+        )))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("Role lookup not found: MANAGER");
+
+        verify(appUserRepository, never()).save(any(AppUser.class));
+        verify(shipmentSearchIndex, never()).invalidateAll();
+    }
+
+    @Test
+    void updateChangesUserAndInvalidatesCache() {
+        UserRoleLookup customerRole = new UserRoleLookup(1L, UserRole.CUSTOMER.name());
+        UserRoleLookup managerRole = new UserRoleLookup(2L, UserRole.MANAGER.name());
+        AppUser existingUser = new AppUser(
+                9L,
+                "Old",
+                "Name",
+                "old@test.local",
+                customerRole,
+                List.of(),
+                List.of(),
+                List.of()
+        );
+        when(appUserRepository.findById(9L)).thenReturn(Optional.of(existingUser));
+        when(userRoleLookupRepository.findByCode(UserRole.MANAGER.name()))
+                .thenReturn(Optional.of(managerRole));
+        when(appUserRepository.save(existingUser)).thenReturn(existingUser);
+
+        AppUserResponse response = appUserService.update(9L, request(
+                "New",
+                "Manager",
+                "new-manager@test.local",
+                UserRole.MANAGER
+        ));
+
+        assertThat(response.getId()).isEqualTo(9L);
+        assertThat(response.getEmail()).isEqualTo("new-manager@test.local");
+        assertThat(response.getRole()).isEqualTo(UserRole.MANAGER);
+        assertThat(existingUser.getFirstName()).isEqualTo("New");
+        assertThat(existingUser.getLastName()).isEqualTo("Manager");
+        assertThat(existingUser.getRole()).isEqualTo(managerRole);
+        verify(shipmentSearchIndex).invalidateAll();
+    }
+
+    @Test
+    void updateMissingUserThrowsNotFound() {
+        when(appUserRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> appUserService.update(99L, request(
+                "Missing",
+                "User",
+                "missing@test.local",
+                UserRole.CUSTOMER
+        )))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("User not found: 99");
+
+        verify(appUserRepository, never()).save(any(AppUser.class));
+        verify(shipmentSearchIndex, never()).invalidateAll();
+    }
+
+    @Test
+    void getByIdMapsExistingUser() {
+        when(appUserRepository.findById(4L)).thenReturn(Optional.of(new AppUser(
+                4L,
+                "Ivan",
+                "Ivanov",
+                "ivan@test.local",
+                new UserRoleLookup(1L, UserRole.CUSTOMER.name()),
+                List.of(),
+                List.of(),
+                List.of()
+        )));
+
+        AppUserResponse response = appUserService.getById(4L);
+
+        assertThat(response.getId()).isEqualTo(4L);
+        assertThat(response.getEmail()).isEqualTo("ivan@test.local");
+        assertThat(response.getRole()).isEqualTo(UserRole.CUSTOMER);
+    }
+
+    @Test
+    void getByIdMissingUserThrowsNotFound() {
+        when(appUserRepository.findById(55L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> appUserService.getById(55L))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("User not found: 55");
+    }
+
+    @Test
     void getAllMapsAllUsersToResponses() {
         UserRoleLookup customerRole = new UserRoleLookup(1L, UserRole.CUSTOMER.name());
+        UserRoleLookup carrierRole = new UserRoleLookup(2L, UserRole.CARRIER.name());
         when(appUserRepository.findAll()).thenReturn(List.of(
                 new AppUser(
                         1L,
@@ -76,13 +176,34 @@ class AppUserServiceImplTest {
                         List.of(),
                         List.of(),
                         List.of()
+                ),
+                new AppUser(
+                        2L,
+                        "Oleg",
+                        "Carrier",
+                        "carrier@test.local",
+                        carrierRole,
+                        List.of(),
+                        List.of(),
+                        List.of()
                 )
         ));
 
         List<AppUserResponse> responses = appUserService.getAll();
 
-        assertThat(responses).hasSize(1);
-        assertThat(responses.getFirst().getRole()).isEqualTo(UserRole.CUSTOMER);
+        assertThat(responses).hasSize(2);
+        assertThat(responses).extracting(AppUserResponse::getRole)
+                .containsExactly(UserRole.CUSTOMER, UserRole.CARRIER);
+    }
+
+    @Test
+    void deleteExistingUserRemovesEntityAndInvalidatesCache() {
+        when(appUserRepository.existsById(7L)).thenReturn(true);
+
+        appUserService.delete(7L);
+
+        verify(appUserRepository).deleteById(7L);
+        verify(shipmentSearchIndex).invalidateAll();
     }
 
     @Test
@@ -95,5 +216,9 @@ class AppUserServiceImplTest {
 
         verify(appUserRepository, never()).deleteById(99L);
         verify(shipmentSearchIndex, never()).invalidateAll();
+    }
+
+    private AppUserRequest request(String firstName, String lastName, String email, UserRole role) {
+        return new AppUserRequest(firstName, lastName, email, role);
     }
 }

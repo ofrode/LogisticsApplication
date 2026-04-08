@@ -172,13 +172,13 @@ public class ShipmentServiceImpl implements ShipmentService {
 
     @Override
     public ShipmentResponse createWithPartialSaveDemo(ShipmentRequest request) {
-        return saveWithManualSteps(request, true);
+        throw buildManualFailure(request);
     }
 
     @Override
     @Transactional
     public ShipmentResponse createWithRollbackDemo(ShipmentRequest request) {
-        return saveWithManualSteps(request, true);
+        throw buildManualFailure(request);
     }
 
     @Override
@@ -212,22 +212,42 @@ public class ShipmentServiceImpl implements ShipmentService {
 
     private List<ShipmentResponse> saveBulkWithIntentionalFailure(List<ShipmentRequest> requests) {
         validateBulkRequests(requests);
-        for (int index = 0; index < requests.size(); index++) {
-            saveNewShipmentEntity(requests.get(index));
-            if (index == 0) {
-                throw new ResponseStatusException(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                        BULK_DEMO_FAILURE_MESSAGE
-                );
-            }
+        if (requests.isEmpty()) {
+            return List.of();
         }
-        return List.of();
+        saveNewShipmentEntity(requests.getFirst());
+        throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                BULK_DEMO_FAILURE_MESSAGE
+        );
     }
 
-    private ShipmentResponse saveWithManualSteps(
-            ShipmentRequest request,
-            boolean failAfterFirstCargo
-    ) {
+    private ResponseStatusException buildManualFailure(ShipmentRequest request) {
+        persistShipmentWithFirstCargo(request);
+        shipmentSearchIndex.invalidateAll();
+        return new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                PARTIAL_SAVE_DEMO_FAILURE_MESSAGE
+        );
+    }
+
+    private ShipmentResponse saveWithManualSteps(ShipmentRequest request) {
+        Shipment persistedShipment = persistShipmentWithFirstCargo(request);
+        for (int index = 1; index < request.getCargoes().size(); index++) {
+            CargoRequest cargoRequest = request.getCargoes().get(index);
+            Cargo cargo = new Cargo(
+                    null,
+                    cargoRequest.getName(),
+                    cargoRequest.getWeightKg(),
+                    persistedShipment
+            );
+            cargoRepository.save(cargo);
+            persistedShipment.getCargoes().add(cargo);
+        }
+        return ShipmentMapper.toResponse(persistedShipment);
+    }
+
+    private Shipment persistShipmentWithFirstCargo(ShipmentRequest request) {
         Shipment shipment = new Shipment();
         shipment.setTrackingNumber(request.getTrackingNumber());
         shipment.setOriginCity(request.getOriginCity());
@@ -256,27 +276,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         );
         cargoRepository.save(firstCargo);
         persistedShipment.getCargoes().add(firstCargo);
-
-        if (failAfterFirstCargo) {
-            shipmentSearchIndex.invalidateAll();
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    PARTIAL_SAVE_DEMO_FAILURE_MESSAGE
-            );
-        }
-
-        for (int index = 1; index < request.getCargoes().size(); index++) {
-            CargoRequest cargoRequest = request.getCargoes().get(index);
-            Cargo cargo = new Cargo(
-                    null,
-                    cargoRequest.getName(),
-                    cargoRequest.getWeightKg(),
-                    persistedShipment
-            );
-            cargoRepository.save(cargo);
-            persistedShipment.getCargoes().add(cargo);
-        }
-        return ShipmentMapper.toResponse(persistedShipment);
+        return persistedShipment;
     }
 
     private void validateBulkRequests(List<ShipmentRequest> requests) {
