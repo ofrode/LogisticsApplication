@@ -231,22 +231,6 @@ public class ShipmentServiceImpl implements ShipmentService {
         );
     }
 
-    private ShipmentResponse saveWithManualSteps(ShipmentRequest request) {
-        Shipment persistedShipment = persistShipmentWithFirstCargo(request);
-        for (int index = 1; index < request.getCargoes().size(); index++) {
-            CargoRequest cargoRequest = request.getCargoes().get(index);
-            Cargo cargo = new Cargo(
-                    null,
-                    cargoRequest.getName(),
-                    cargoRequest.getWeightKg(),
-                    persistedShipment
-            );
-            cargoRepository.save(cargo);
-            persistedShipment.getCargoes().add(cargo);
-        }
-        return ShipmentMapper.toResponse(persistedShipment);
-    }
-
     private Shipment persistShipmentWithFirstCargo(ShipmentRequest request) {
         Shipment shipment = new Shipment();
         shipment.setTrackingNumber(request.getTrackingNumber());

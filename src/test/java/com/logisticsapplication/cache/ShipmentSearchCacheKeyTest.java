@@ -22,8 +22,7 @@ class ShipmentSearchCacheKeyTest {
         ShipmentSearchCacheKey first = new ShipmentSearchCacheKey(criteria, page);
         ShipmentSearchCacheKey second = new ShipmentSearchCacheKey(criteria, page);
 
-        assertThat(first).isEqualTo(second);
-        assertThat(first.hashCode()).isEqualTo(second.hashCode());
+        assertThat(first).isEqualTo(second).hasSameHashCodeAs(second);
         assertThat(first.toString()).contains("customer@example.com", "arrivalAt,asc");
     }
 
@@ -38,8 +37,9 @@ class ShipmentSearchCacheKeyTest {
                 new ShipmentSearchCacheKey.PageDescriptor(0, 10, "id,asc")
         );
 
-        assertThat(first).isNotEqualTo(second);
-        assertThat(first).isEqualTo(first);
+        assertThat(first)
+                .isNotEqualTo(second)
+                .isEqualTo(first);
         assertThat(first.equals(null)).isFalse();
         assertThat(first.equals("not-a-cache-key")).isFalse();
     }

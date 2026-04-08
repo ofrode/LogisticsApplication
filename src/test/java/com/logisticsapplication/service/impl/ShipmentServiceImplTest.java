@@ -648,7 +648,7 @@ class ShipmentServiceImplTest {
     }
 
     @Test
-    void saveWithManualStepsWithoutFailureSavesAllCargoesAndReturnsResponse() {
+    void persistShipmentWithFirstCargoSavesMinimalAggregate() {
         stubSuccessfulAggregateResolution(ShipmentStatus.RECEIVED);
         stubManualPersistence();
         ShipmentRequest request = buildRequest(
@@ -664,17 +664,18 @@ class ShipmentServiceImplTest {
                 manager.getId()
         );
 
-        ShipmentResponse response = ReflectionTestUtils.invokeMethod(
+        Shipment persistedShipment = ReflectionTestUtils.invokeMethod(
                 shipmentService,
-                "saveWithManualSteps",
+                "persistShipmentWithFirstCargo",
                 request
         );
 
-        assertThat(response.getTrackingNumber()).isEqualTo("SHIP-MANUAL");
-        assertThat(response.getStatus()).isEqualTo(ShipmentStatus.RECEIVED);
-        assertThat(response.getCargoes()).hasSize(2);
-        assertThat(response.getSchedule()).isNotNull();
-        verify(cargoRepository, times(2)).save(any(Cargo.class));
+        assertThat(persistedShipment.getTrackingNumber()).isEqualTo("SHIP-MANUAL");
+        assertThat(persistedShipment.getStatus().getCode()).isEqualTo(ShipmentStatus.RECEIVED.name());
+        assertThat(persistedShipment.getCargoes()).hasSize(1);
+        assertThat(persistedShipment.getCargoes().getFirst().getName()).isEqualTo("Paper");
+        assertThat(persistedShipment.getSchedule()).isNotNull();
+        verify(cargoRepository).save(any(Cargo.class));
         verify(shipmentSearchIndex, never()).invalidateAll();
     }
 
