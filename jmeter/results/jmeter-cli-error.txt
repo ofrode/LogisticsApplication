@@ -1,0 +1,13 @@
+Installed JMeter CLI in this environment:
+- executable: /usr/bin/jmeter
+- reported version: 2.13.19691222
+
+Attempted command:
+jmeter -n -t jmeter/race-condition-demo.jmx -l jmeter/results/race-condition-demo.jtl
+
+Observed result:
+Error in NonGUIDriver com.thoughtworks.xstream.security.ForbiddenClassException:
+org.apache.jmeter.save.ScriptWrapper
+
+The same error also occurs when running bundled JMeter templates from:
+/usr/share/jmeter/bin/templates/

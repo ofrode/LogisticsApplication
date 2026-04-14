@@ -6,6 +6,9 @@ REST API для управления логистическими заказам
 
 - CRUD для пользователей, транспорта и заказов;
 - bulk-операцию массового создания `Shipment`;
+- асинхронную bulk-операцию через `@Async` и `CompletableFuture` с `taskId` и проверкой статуса;
+- потокобезопасные счётчики на `AtomicInteger` и `synchronized`;
+- демонстрацию `race condition` через `ExecutorService` c `50+` потоками и безопасные варианты решения;
 - сложные связи JPA;
 - демонстрацию `N+1` и оптимизацию через `@EntityGraph`;
 - транзакционное поведение (`partial-save` vs `rollback`) для single и bulk сценариев;
@@ -123,7 +126,7 @@ JaCoCo -> SonarQube"]
 Коротко по слоям:
 
 - `controller` принимает HTTP-запросы, валидирует входные DTO и делегирует работу сервисам;
-- `service` содержит бизнес-логику: CRUD, bulk-операции, транзакции, поиск, кэш и проверки;
+- `service` содержит бизнес-логику: CRUD, bulk-операции, асинхронные задачи, race-condition demo, транзакции, поиск, кэш и проверки;
 - `repository` работает с JPA и БД;
 - `mapper` преобразует entity в response DTO;
 - `cache` хранит результаты поиска `Shipment`;
@@ -138,14 +141,19 @@ logisticsapplication/
 ├── .github/
 │   └── workflows/
 │       └── ci-sonarqube.yml
+├── jmeter/
+│   ├── race-condition-demo.jmx
+│   └── results/
+│       ├── jmeter-cli-error.txt
+│       └── manual-probe.json
 ├── pom.xml
 ├── README.md
-├── Task.md
 ├── config/
 │   ├── checkstyle.xml
 │   └── checkstyle-suppressions.xml
 ├── postman/
-│   └── LogisticsApplication.postman_collection.json
+│   ├── LogisticsApplication.postman_collection.json
+│   └── ShipmentBulk.postman_collection.json
 └── src/
     ├── main/
     │   ├── java/
@@ -157,32 +165,45 @@ logisticsapplication/
     │   │           ├── cache/
     │   │           │   ├── ShipmentSearchCacheKey.java
     │   │           │   └── ShipmentSearchIndex.java
-    │   │           ├── controller/
-    │   │           │   ├── AppUserController.java
-    │   │           │   ├── HealthController.java
-    │   │           │   ├── ShipmentController.java
-    │   │           │   └── VehicleController.java
     │   │           ├── config/
+    │   │           │   ├── AsyncConfig.java
     │   │           │   ├── LookupDataInitializer.java
     │   │           │   └── OpenApiConfig.java
-    │   │           ├── service/
-    │   │           │   ├── AppUserService.java
-    │   │           │   ├── ShipmentService.java
-    │   │           │   ├── VehicleService.java
-    │   │           │   └── impl/
-    │   │           │       ├── AppUserServiceImpl.java
-    │   │           │       ├── ShipmentServiceImpl.java
-    │   │           │       └── VehicleServiceImpl.java
-    │   │           ├── repository/
-    │   │           │   ├── AppUserRepository.java
-    │   │           │   ├── CargoRepository.java
-    │   │           │   ├── ShipmentRepository.java
-    │   │           │   ├── ShipmentScheduleRepository.java
-    │   │           │   ├── ShipmentStatusLookupRepository.java
-    │   │           │   ├── UserRoleLookupRepository.java
-    │   │           │   └── VehicleRepository.java
+    │   │           ├── controller/
+    │   │           │   ├── AppUserController.java
+    │   │           │   ├── ConcurrencyController.java
+    │   │           │   ├── HealthController.java
+    │   │           │   ├── ShipmentAsyncController.java
+    │   │           │   ├── ShipmentController.java
+    │   │           │   └── VehicleController.java
+    │   │           ├── dto/
+    │   │           │   ├── request/
+    │   │           │   │   ├── AppUserRequest.java
+    │   │           │   │   ├── CargoRequest.java
+    │   │           │   │   ├── ShipmentRequest.java
+    │   │           │   │   ├── ShipmentScheduleRequest.java
+    │   │           │   │   └── VehicleRequest.java
+    │   │           │   └── response/
+    │   │           │       ├── ApiErrorResponse.java
+    │   │           │       ├── AppUserResponse.java
+    │   │           │       ├── AsyncShipmentTaskStatusResponse.java
+    │   │           │       ├── AsyncTaskSubmittedResponse.java
+    │   │           │       ├── CargoResponse.java
+    │   │           │       ├── CounterSnapshotResponse.java
+    │   │           │       ├── PageResponse.java
+    │   │           │       ├── RaceConditionDemoResponse.java
+    │   │           │       ├── ShipmentResponse.java
+    │   │           │       ├── ShipmentScheduleResponse.java
+    │   │           │       └── VehicleResponse.java
+    │   │           ├── exception/
+    │   │           │   └── GlobalExceptionHandler.java
+    │   │           ├── mapper/
+    │   │           │   ├── AppUserMapper.java
+    │   │           │   ├── ShipmentMapper.java
+    │   │           │   └── VehicleMapper.java
     │   │           ├── model/
     │   │           │   ├── AppUser.java
+    │   │           │   ├── AsyncTaskStatus.java
     │   │           │   ├── Cargo.java
     │   │           │   ├── Shipment.java
     │   │           │   ├── ShipmentSchedule.java
@@ -192,27 +213,28 @@ logisticsapplication/
     │   │           │   ├── UserRole.java
     │   │           │   ├── UserRoleLookup.java
     │   │           │   └── Vehicle.java
-    │   │           ├── dto/
-    │   │           │   ├── request/
-    │   │           │   │   ├── AppUserRequest.java
-    │   │           │   │   ├── CargoRequest.java
-    │   │           │   │   ├── ShipmentRequest.java
-    │   │           │   │   ├── ShipmentScheduleRequest.java
-    │   │           │   │   └── VehicleRequest.java
-    │   │           │   └── response/
-    │   │           │       ├── AppUserResponse.java
-    │   │           │       ├── CargoResponse.java
-    │   │           │       ├── PageResponse.java
-    │   │           │       ├── ShipmentResponse.java
-    │   │           │       ├── ShipmentScheduleResponse.java
-    │   │           │       ├── VehicleResponse.java
-    │   │           │       └── ApiErrorResponse.java
-    │   │           ├── exception/
-    │   │           │   └── GlobalExceptionHandler.java
-    │   │           └── mapper/
-    │   │               ├── AppUserMapper.java
-    │   │               ├── ShipmentMapper.java
-    │   │               └── VehicleMapper.java
+    │   │           ├── repository/
+    │   │           │   ├── AppUserRepository.java
+    │   │           │   ├── CargoRepository.java
+    │   │           │   ├── ShipmentRepository.java
+    │   │           │   ├── ShipmentScheduleRepository.java
+    │   │           │   ├── ShipmentStatusLookupRepository.java
+    │   │           │   ├── UserRoleLookupRepository.java
+    │   │           │   └── VehicleRepository.java
+    │   │           ├── service/
+    │   │           │   ├── AppUserService.java
+    │   │           │   ├── ConcurrencyDemoService.java
+    │   │           │   ├── ShipmentAsyncService.java
+    │   │           │   ├── ShipmentService.java
+    │   │           │   ├── VehicleService.java
+    │   │           │   └── impl/
+    │   │           │       ├── AsyncShipmentTaskRegistry.java
+    │   │           │       ├── AppUserServiceImpl.java
+    │   │           │       ├── ConcurrencyDemoServiceImpl.java
+    │   │           │       ├── ShipmentAsyncServiceImpl.java
+    │   │           │       ├── ShipmentAsyncWorker.java
+    │   │           │       ├── ShipmentServiceImpl.java
+    │   │           │       └── VehicleServiceImpl.java
     │   └── resources/
     │       ├── application.properties
     │       ├── application-postgres.properties
@@ -225,11 +247,28 @@ logisticsapplication/
         │   └── com/
         │       └── logisticsapplication/
         │           ├── ApiEndpointsIntegrationTest.java
+        │           ├── LogisticsApplicationTest.java
         │           ├── LogisticsapplicationApplicationTests.java
         │           ├── ShipmentTransactionIntegrationTest.java
+        │           ├── cache/
+        │           │   └── ShipmentSearchCacheKeyTest.java
+        │           ├── controller/
+        │           │   ├── ShipmentAsyncControllerTest.java
+        │           │   └── ShipmentControllerTest.java
+        │           ├── dto/
+        │           │   └── request/
+        │           │       └── ShipmentScheduleRequestTest.java
+        │           ├── exception/
+        │           │   └── GlobalExceptionHandlerTest.java
+        │           ├── mapper/
+        │           │   └── ShipmentMapperTest.java
+        │           ├── model/
+        │           │   └── ShipmentTest.java
         │           └── service/
         │               └── impl/
         │                   ├── AppUserServiceImplTest.java
+        │                   ├── ConcurrencyDemoServiceImplTest.java
+        │                   ├── ShipmentAsyncWorkerTest.java
         │                   ├── ShipmentServiceImplTest.java
         │                   └── VehicleServiceImplTest.java
         └── resources/
@@ -237,6 +276,79 @@ logisticsapplication/
 ```
 
 ## API
+
+### Асинхронные операции
+
+- `POST /api/shipments/async/bulk`:
+  запускает асинхронное bulk-создание отправлений и сразу возвращает `taskId`.
+- `GET /api/shipments/async/tasks/{taskId}`:
+  возвращает текущий статус задачи (`PENDING`, `RUNNING`, `COMPLETED`, `FAILED`), число обработанных записей, созданные `shipmentId` и сообщение об ошибке при неудаче.
+
+Пример ответа на запуск:
+
+```json
+{
+  "taskId": 1,
+  "status": "PENDING"
+}
+```
+
+Пример ответа на проверку статуса:
+
+```json
+{
+  "taskId": 1,
+  "status": "COMPLETED",
+  "requestedShipments": 2,
+  "processedShipments": 2,
+  "createdShipmentIds": [101, 102],
+  "errorMessage": null
+}
+```
+
+### Concurrency Demo
+
+- `POST /api/concurrency/counter/atomic/increment?times=10`:
+  увеличивает потокобезопасный `Atomic`-счётчик.
+- `POST /api/concurrency/counter/synchronized/increment?times=10`:
+  увеличивает потокобезопасный `synchronized`-счётчик.
+- `GET /api/concurrency/race-condition?threads=64&incrementsPerThread=5000`:
+  запускает демонстрацию гонки данных на небезопасном счётчике и параллельно показывает корректный результат для `Atomic` и `synchronized`.
+
+Пример живого ответа:
+
+```json
+{
+  "threadCount": 64,
+  "incrementsPerThread": 2000,
+  "expectedValue": 128000,
+  "unsafeValue": 15162,
+  "atomicValue": 128000,
+  "synchronizedValue": 128000,
+  "lostUpdates": 112838
+}
+```
+
+### Нагрузочное тестирование
+
+- JMeter test plan лежит в [jmeter/race-condition-demo.jmx](jmeter/race-condition-demo.jmx).
+- Целевой endpoint для нагрузки: `GET /api/concurrency/race-condition?threads=64&incrementsPerThread=2000`.
+- Команда для запуска на рабочей установке JMeter:
+
+```bash
+jmeter -n -t jmeter/race-condition-demo.jmx -l jmeter/results/race-condition-demo.jtl
+```
+
+Что удалось проверить в этой среде:
+
+- приложение успешно поднято локально на `http://127.0.0.1:8080`;
+- endpoint concurrency demo отвечает корректно и воспроизводит потерю инкрементов на небезопасном счётчике;
+- локально установленный `jmeter` в этой среде сломан и падает даже на встроенных шаблонах с ошибкой `ForbiddenClassException: org.apache.jmeter.save.ScriptWrapper`, поэтому полноценный CLI-отчёт JMeter здесь не был сгенерирован.
+
+Артефакты:
+
+- [jmeter/results/manual-probe.json](jmeter/results/manual-probe.json)
+- [jmeter/results/jmeter-cli-error.txt](jmeter/results/jmeter-cli-error.txt)
 
 ### Базовые endpoints
 
