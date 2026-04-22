@@ -39,7 +39,7 @@ class ShipmentAsyncWorkerTest {
     @Test
     void processBulkCreationMarksTaskCompleted() {
         List<ShipmentRequest> requests = List.of(buildRequest("ASYNC-001"));
-        Long taskId = taskRegistry.createTask(requests.size()).getTaskId();
+        Long taskId = taskRegistry.createTask(requests).getTaskId();
         when(shipmentService.createBulk(requests)).thenReturn(
                 List.of(new ShipmentResponse(
                         101L,
@@ -60,6 +60,7 @@ class ShipmentAsyncWorkerTest {
         AsyncShipmentTaskStatusResponse status = taskRegistry.getTask(taskId);
         assertThat(status.getStatus()).isEqualTo(AsyncTaskStatus.COMPLETED);
         assertThat(status.getProcessedShipments()).isEqualTo(1);
+        assertThat(status.getSubmittedRequests()).containsExactlyElementsOf(requests);
         assertThat(status.getCreatedShipmentIds()).containsExactly(101L);
         assertThat(status.getCompletedAt()).isNotNull();
     }
@@ -67,7 +68,7 @@ class ShipmentAsyncWorkerTest {
     @Test
     void processBulkCreationMarksTaskFailedWhenBusinessOperationFails() {
         List<ShipmentRequest> requests = List.of(buildRequest("ASYNC-FAIL"));
-        Long taskId = taskRegistry.createTask(requests.size()).getTaskId();
+        Long taskId = taskRegistry.createTask(requests).getTaskId();
         when(shipmentService.createBulk(requests)).thenThrow(
                 new ResponseStatusException(
                         org.springframework.http.HttpStatus.BAD_REQUEST,
@@ -79,10 +80,23 @@ class ShipmentAsyncWorkerTest {
 
         AsyncShipmentTaskStatusResponse status = taskRegistry.getTask(taskId);
         assertThat(status.getStatus()).isEqualTo(AsyncTaskStatus.FAILED);
+        assertThat(status.getSubmittedRequests()).containsExactlyElementsOf(requests);
         assertThat(status.getErrorMessage()).isEqualTo(
                 "Tracking number already exists: ASYNC-FAIL"
         );
         assertThat(status.getCompletedAt()).isNotNull();
+    }
+
+    @Test
+    void getAllTasksReturnsTasksInReverseCreationOrder() {
+        Long firstTaskId = taskRegistry.createTask(List.of(buildRequest("ASYNC-FIRST"))).getTaskId();
+        Long secondTaskId = taskRegistry.createTask(List.of(buildRequest("ASYNC-SECOND"))).getTaskId();
+
+        var overview = taskRegistry.getAllTasks();
+
+        assertThat(overview.getSubmittedTasks())
+                .extracting(AsyncShipmentTaskStatusResponse::getTaskId)
+                .containsExactly(secondTaskId, firstTaskId);
     }
 
     private ShipmentRequest buildRequest(String trackingNumber) {

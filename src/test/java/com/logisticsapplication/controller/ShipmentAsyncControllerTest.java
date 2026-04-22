@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import com.logisticsapplication.dto.request.CargoRequest;
 import com.logisticsapplication.dto.request.ShipmentRequest;
 import com.logisticsapplication.dto.request.ShipmentScheduleRequest;
+import com.logisticsapplication.dto.response.AsyncShipmentTaskOverviewResponse;
 import com.logisticsapplication.dto.response.AsyncShipmentTaskStatusResponse;
 import com.logisticsapplication.model.AsyncTaskStatus;
 import com.logisticsapplication.model.ShipmentStatus;
@@ -52,6 +53,7 @@ class ShipmentAsyncControllerTest {
                 15L,
                 AsyncTaskStatus.COMPLETED,
                 2,
+                List.of(buildRequest("ASYNC-001"), buildRequest("ASYNC-002")),
                 2,
                 List.of(101L, 102L),
                 null,
@@ -63,6 +65,72 @@ class ShipmentAsyncControllerTest {
 
         assertThat(shipmentAsyncController.getTaskStatus(15L).getBody()).isEqualTo(response);
         verify(shipmentAsyncService).getTaskStatus(15L);
+    }
+
+    @Test
+    void getAllTaskStatusesDelegatesToService() {
+        AsyncShipmentTaskOverviewResponse response = new AsyncShipmentTaskOverviewResponse(
+                List.of(
+                        new AsyncShipmentTaskStatusResponse(
+                                17L,
+                                AsyncTaskStatus.PENDING,
+                                1,
+                                List.of(buildRequest("ASYNC-003")),
+                                0,
+                                List.of(),
+                                null,
+                                Instant.parse("2026-04-14T12:00:00Z"),
+                                null,
+                                null
+                        )
+                ),
+                List.of(
+                        new AsyncShipmentTaskStatusResponse(
+                                16L,
+                                AsyncTaskStatus.RUNNING,
+                                3,
+                                List.of(buildRequest("ASYNC-004")),
+                                1,
+                                List.of(),
+                                null,
+                                Instant.parse("2026-04-14T11:00:00Z"),
+                                Instant.parse("2026-04-14T11:00:01Z"),
+                                null
+                        )
+                ),
+                List.of(
+                        new AsyncShipmentTaskStatusResponse(
+                                15L,
+                                AsyncTaskStatus.COMPLETED,
+                                2,
+                                List.of(buildRequest("ASYNC-001"), buildRequest("ASYNC-002")),
+                                2,
+                                List.of(101L, 102L),
+                                null,
+                                Instant.parse("2026-04-14T10:00:00Z"),
+                                Instant.parse("2026-04-14T10:00:01Z"),
+                                Instant.parse("2026-04-14T10:00:03Z")
+                        )
+                ),
+                List.of(
+                        new AsyncShipmentTaskStatusResponse(
+                                14L,
+                                AsyncTaskStatus.FAILED,
+                                1,
+                                List.of(buildRequest("ASYNC-005")),
+                                0,
+                                List.of(),
+                                "Tracking number already exists: ASYNC-005",
+                                Instant.parse("2026-04-14T09:00:00Z"),
+                                Instant.parse("2026-04-14T09:00:01Z"),
+                                Instant.parse("2026-04-14T09:00:02Z")
+                        )
+                )
+        );
+        when(shipmentAsyncService.getAllTaskStatuses()).thenReturn(response);
+
+        assertThat(shipmentAsyncController.getAllTaskStatuses().getBody()).isEqualTo(response);
+        verify(shipmentAsyncService).getAllTaskStatuses();
     }
 
     private ShipmentRequest buildRequest(String trackingNumber) {

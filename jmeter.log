@@ -1,0 +1,17 @@
+2026/04/21 23:46:09 INFO  - jmeter.util.JMeterUtils: Setting Locale to en 
+2026/04/21 23:46:09 INFO  - jmeter.JMeter: Loading user properties from: /usr/share/jmeter/bin/user.properties 
+2026/04/21 23:46:09 INFO  - jmeter.JMeter: Loading system properties from: /usr/share/jmeter/bin/system.properties 
+2026/04/21 23:46:09 INFO  - jmeter.JMeter: Copyright (c) 1998-2015 The Apache Software Foundation 
+2026/04/21 23:46:09 INFO  - jmeter.JMeter: Version 2.13.19691222 
+2026/04/21 23:46:09 INFO  - jmeter.JMeter: java.version=21.0.10 
+2026/04/21 23:46:09 INFO  - jmeter.JMeter: java.vm.name=OpenJDK 64-Bit Server VM 
+2026/04/21 23:46:09 INFO  - jmeter.JMeter: os.name=Linux 
+2026/04/21 23:46:09 INFO  - jmeter.JMeter: os.arch=amd64 
+2026/04/21 23:46:09 INFO  - jmeter.JMeter: os.version=6.17.0-20-generic 
+2026/04/21 23:46:09 INFO  - jmeter.JMeter: file.encoding=UTF-8 
+2026/04/21 23:46:09 INFO  - jmeter.JMeter: Default Locale=English 
+2026/04/21 23:46:09 INFO  - jmeter.JMeter: JMeter  Locale=English 
+2026/04/21 23:46:09 INFO  - jmeter.JMeter: JMeterHome=/usr/share/jmeter 
+2026/04/21 23:46:09 INFO  - jmeter.JMeter: user.dir  =/home/ofrode/vs code/Java/logisticsapplication 
+2026/04/21 23:46:09 INFO  - jmeter.JMeter: PWD       =/home/ofrode/vs code/Java/logisticsapplication 
+2026/04/21 23:46:09 INFO  - jmeter.JMeter: IP: 127.0.1.1 Name: ofrode-LOQ-15IAX9 FullName: ofrode-LOQ-15IAX9 

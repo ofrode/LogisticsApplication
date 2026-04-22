@@ -1,0 +1,1002 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="All Endpoints Except Delete">
+      <stringProp name="TestPlan.comments">JMeter plan for all application endpoints except DELETE. Covers CRUD reads/writes, demo endpoints, concurrency endpoints, and async task lifecycle.</stringProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="host" elementType="Argument">
+            <stringProp name="Argument.name">host</stringProp>
+            <stringProp name="Argument.value">127.0.0.1</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="port" elementType="Argument">
+            <stringProp name="Argument.name">port</stringProp>
+            <stringProp name="Argument.value">8080</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="userId" elementType="Argument">
+            <stringProp name="Argument.name">userId</stringProp>
+            <stringProp name="Argument.value">6</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="carrierId" elementType="Argument">
+            <stringProp name="Argument.name">carrierId</stringProp>
+            <stringProp name="Argument.value">4</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="vehicleId" elementType="Argument">
+            <stringProp name="Argument.name">vehicleId</stringProp>
+            <stringProp name="Argument.value">2</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="shipmentId" elementType="Argument">
+            <stringProp name="Argument.name">shipmentId</stringProp>
+            <stringProp name="Argument.value">1</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="customerId" elementType="Argument">
+            <stringProp name="Argument.name">customerId</stringProp>
+            <stringProp name="Argument.value">5</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="managerId" elementType="Argument">
+            <stringProp name="Argument.name">managerId</stringProp>
+            <stringProp name="Argument.value">6</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+        </collectionProp>
+      </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+    </TestPlan>
+    <hashTree>
+      <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="HTTP Request Defaults">
+        <intProp name="HTTPSampler.connect_timeout">10000</intProp>
+        <intProp name="HTTPSampler.response_timeout">120000</intProp>
+        <stringProp name="HTTPSampler.domain">${host}</stringProp>
+        <stringProp name="HTTPSampler.port">${port}</stringProp>
+        <stringProp name="HTTPSampler.protocol">http</stringProp>
+        <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
+        <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+          <collectionProp name="Arguments.arguments"/>
+        </elementProp>
+        <stringProp name="HTTPSampler.implementation"></stringProp>
+      </ConfigTestElement>
+      <hashTree/>
+      <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Headers" enabled="true">
+        <collectionProp name="HeaderManager.headers">
+          <elementProp name="Content-Type" elementType="Header">
+            <stringProp name="Header.name">Content-Type</stringProp>
+            <stringProp name="Header.value">application/json</stringProp>
+          </elementProp>
+          <elementProp name="Accept" elementType="Header">
+            <stringProp name="Header.name">Accept</stringProp>
+            <stringProp name="Header.value">application/json</stringProp>
+          </elementProp>
+        </collectionProp>
+      </HeaderManager>
+      <hashTree/>
+      <CookieManager guiclass="CookiePanel" testclass="CookieManager" testname="HTTP Cookie Manager" enabled="true">
+        <collectionProp name="CookieManager.cookies"/>
+        <boolProp name="CookieManager.clearEachIteration">false</boolProp>
+        <boolProp name="CookieManager.controlledByThreadGroup">false</boolProp>
+      </CookieManager>
+      <hashTree/>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Sequential API Demo">
+        <intProp name="ThreadGroup.num_threads">300</intProp>
+        <intProp name="ThreadGroup.ramp_time">1</intProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <stringProp name="LoopController.loops">1</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET Health" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/health</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET Users" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/users</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET User By Id" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/users/${userId}</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST Create User" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/users</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+  &quot;firstName&quot;: &quot;Temp&quot;,&#xd;
+  &quot;lastName&quot;: &quot;Manager&quot;,&#xd;
+  &quot;email&quot;: &quot;temp.${__UUID}@test.local&quot;,&#xd;
+  &quot;role&quot;: &quot;MANAGER&quot;&#xd;
+}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract Created User Id" enabled="true">
+            <stringProp name="JSONPostProcessor.referenceNames">createdUserId</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.id</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">${userId}</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="PUT Update User" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/users/${createdUserId}</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">PUT</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+  &quot;firstName&quot;: &quot;Maksim&quot;,&#xd;
+  &quot;lastName&quot;: &quot;Efimchik&quot;,&#xd;
+  &quot;email&quot;: &quot;updated.${__UUID}@test.local&quot;,&#xd;
+  &quot;role&quot;: &quot;MANAGER&quot;&#xd;
+}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET Vehicles" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/vehicles</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET Vehicle By Id" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/vehicles/${vehicleId}</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST Create Vehicle" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/vehicles</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+  &quot;registrationNumber&quot;: &quot;TV-${__threadNum}-${__RandomString(6,ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,)}&quot;,&#xd;
+  &quot;capacityKg&quot;: 4500.00,&#xd;
+  &quot;carrierId&quot;: ${carrierId}&#xd;
+}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract Created Vehicle Id" enabled="true">
+            <stringProp name="JSONPostProcessor.referenceNames">createdVehicleId</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.id</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">${vehicleId}</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="PUT Update Vehicle" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/vehicles/${createdVehicleId}</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">PUT</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+  &quot;registrationNumber&quot;: &quot;UV-${__threadNum}-${__RandomString(6,ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,)}&quot;,&#xd;
+  &quot;capacityKg&quot;: 7000.00,&#xd;
+  &quot;carrierId&quot;: ${carrierId}&#xd;
+}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST Create Shipment" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/shipments</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+  &quot;trackingNumber&quot;: &quot;TS-${__UUID}&quot;,&#xd;
+  &quot;originCity&quot;: &quot;Minsk&quot;,&#xd;
+  &quot;destinationCity&quot;: &quot;Warsaw&quot;,&#xd;
+  &quot;status&quot;: &quot;CREATED&quot;,&#xd;
+  &quot;customerId&quot;: ${customerId},&#xd;
+  &quot;managerId&quot;: ${managerId},&#xd;
+  &quot;vehicleIds&quot;: [${createdVehicleId}],&#xd;
+  &quot;cargoes&quot;: [&#xd;
+    {&#xd;
+      &quot;name&quot;: &quot;Monitors&quot;,&#xd;
+      &quot;weightKg&quot;: 300.00&#xd;
+    }&#xd;
+  ],&#xd;
+  &quot;schedule&quot;: {&#xd;
+    &quot;orderCreatedAt&quot;: &quot;2026-03-24T10:00:00&quot;,&#xd;
+    &quot;orderReceivedAt&quot;: &quot;2026-03-24T12:00:00&quot;,&#xd;
+    &quot;arrivalAt&quot;: &quot;2026-03-27T14:00:00&quot;&#xd;
+  }&#xd;
+}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract Created Shipment Id" enabled="true">
+            <stringProp name="JSONPostProcessor.referenceNames">createdShipmentId</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.id</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">${shipmentId}</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="PUT Update Shipment" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/shipments/${createdShipmentId}</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">PUT</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+  &quot;trackingNumber&quot;: &quot;US-${__UUID}&quot;,&#xd;
+  &quot;originCity&quot;: &quot;Minsk&quot;,&#xd;
+  &quot;destinationCity&quot;: &quot;Prague&quot;,&#xd;
+  &quot;status&quot;: &quot;IN_TRANSIT&quot;,&#xd;
+  &quot;customerId&quot;: ${customerId},&#xd;
+  &quot;managerId&quot;: ${managerId},&#xd;
+  &quot;vehicleIds&quot;: [${createdVehicleId}],&#xd;
+  &quot;cargoes&quot;: [&#xd;
+    {&#xd;
+      &quot;name&quot;: &quot;Electronics&quot;,&#xd;
+      &quot;weightKg&quot;: 1200.50&#xd;
+    }&#xd;
+  ],&#xd;
+  &quot;schedule&quot;: {&#xd;
+    &quot;orderCreatedAt&quot;: &quot;2026-03-11T10:00:00&quot;,&#xd;
+    &quot;orderReceivedAt&quot;: &quot;2026-03-11T12:00:00&quot;,&#xd;
+    &quot;arrivalAt&quot;: &quot;2026-03-14T09:00:00&quot;&#xd;
+  }&#xd;
+}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET Shipments Optimized True" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/shipments</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="optimized" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.name">optimized</stringProp>
+                <stringProp name="Argument.value">true</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+              <elementProp name="status" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.name">status</stringProp>
+                <stringProp name="Argument.value">CREATED</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET Shipment Search JPQL" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/shipments/search</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="customerEmail" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.name">customerEmail</stringProp>
+                <stringProp name="Argument.value">mogila@test.local</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+              <elementProp name="cargoName" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.name">cargoName</stringProp>
+                <stringProp name="Argument.value">Electronics</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+              <elementProp name="arrivalTo" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.name">arrivalTo</stringProp>
+                <stringProp name="Argument.value">2026-03-15T23:59:59</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+              <elementProp name="queryType" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.name">queryType</stringProp>
+                <stringProp name="Argument.value">JPQL</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+              <elementProp name="page" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.name">page</stringProp>
+                <stringProp name="Argument.value">0</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+              <elementProp name="size" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.name">size</stringProp>
+                <stringProp name="Argument.value">5</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET Shipment Search Native" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/shipments/search</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="customerEmail" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.name">customerEmail</stringProp>
+                <stringProp name="Argument.value">mogila@test.local</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+              <elementProp name="cargoName" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.name">cargoName</stringProp>
+                <stringProp name="Argument.value">Electronics</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+              <elementProp name="arrivalTo" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.name">arrivalTo</stringProp>
+                <stringProp name="Argument.value">2026-03-15T23:59:59</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+              <elementProp name="queryType" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.name">queryType</stringProp>
+                <stringProp name="Argument.value">NATIVE</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+              <elementProp name="page" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.name">page</stringProp>
+                <stringProp name="Argument.value">0</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+              <elementProp name="size" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.name">size</stringProp>
+                <stringProp name="Argument.value">5</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST Shipment Demo Partial Save" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/shipments/demo/partial-save</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+  &quot;trackingNumber&quot;: &quot;PS-${__UUID}&quot;,&#xd;
+  &quot;originCity&quot;: &quot;Minsk&quot;,&#xd;
+  &quot;destinationCity&quot;: &quot;Berlin&quot;,&#xd;
+  &quot;status&quot;: &quot;CREATED&quot;,&#xd;
+  &quot;customerId&quot;: ${customerId},&#xd;
+  &quot;managerId&quot;: ${managerId},&#xd;
+  &quot;vehicleIds&quot;: [${createdVehicleId}],&#xd;
+  &quot;cargoes&quot;: [&#xd;
+    {&#xd;
+      &quot;name&quot;: &quot;Paper&quot;,&#xd;
+      &quot;weightKg&quot;: 150.00&#xd;
+    },&#xd;
+    {&#xd;
+      &quot;name&quot;: &quot;Boxes&quot;,&#xd;
+      &quot;weightKg&quot;: 200.00&#xd;
+    }&#xd;
+  ],&#xd;
+  &quot;schedule&quot;: {&#xd;
+    &quot;orderCreatedAt&quot;: &quot;2026-03-24T09:00:00&quot;,&#xd;
+    &quot;orderReceivedAt&quot;: &quot;2026-03-24T11:00:00&quot;,&#xd;
+    &quot;arrivalAt&quot;: &quot;2026-03-25T18:00:00&quot;&#xd;
+  }&#xd;
+}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Accept Expected Partial Save Failure" enabled="true">
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="script">if (prev.getResponseCode() == &apos;500&apos; &amp;&amp; prev.getResponseDataAsString().contains(&apos;Intentional failure after partial save&apos;)) { prev.setSuccessful(true); prev.setResponseMessage(&apos;Expected partial-save demo failure&apos;); }</stringProp>
+          </JSR223PostProcessor>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST Shipment Demo Rollback" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/shipments/demo/rollback</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+  &quot;trackingNumber&quot;: &quot;RB-${__UUID}&quot;,&#xd;
+  &quot;originCity&quot;: &quot;Minsk&quot;,&#xd;
+  &quot;destinationCity&quot;: &quot;Berlin&quot;,&#xd;
+  &quot;status&quot;: &quot;CREATED&quot;,&#xd;
+  &quot;customerId&quot;: ${customerId},&#xd;
+  &quot;managerId&quot;: ${managerId},&#xd;
+  &quot;vehicleIds&quot;: [${createdVehicleId}],&#xd;
+  &quot;cargoes&quot;: [&#xd;
+    {&#xd;
+      &quot;name&quot;: &quot;Paper&quot;,&#xd;
+      &quot;weightKg&quot;: 150.00&#xd;
+    },&#xd;
+    {&#xd;
+      &quot;name&quot;: &quot;Boxes&quot;,&#xd;
+      &quot;weightKg&quot;: 200.00&#xd;
+    }&#xd;
+  ],&#xd;
+  &quot;schedule&quot;: {&#xd;
+    &quot;orderCreatedAt&quot;: &quot;2026-03-24T09:00:00&quot;,&#xd;
+    &quot;orderReceivedAt&quot;: &quot;2026-03-24T11:00:00&quot;,&#xd;
+    &quot;arrivalAt&quot;: &quot;2026-03-25T18:00:00&quot;&#xd;
+  }&#xd;
+}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Accept Expected Rollback Failure" enabled="true">
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="script">if (prev.getResponseCode() == &apos;500&apos; &amp;&amp; prev.getResponseDataAsString().contains(&apos;Intentional failure after partial save&apos;)) { prev.setSuccessful(true); prev.setResponseMessage(&apos;Expected rollback demo failure&apos;); }</stringProp>
+          </JSR223PostProcessor>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST Shipment Bulk" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/shipments/bulk</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">[&#xd;
+  {&#xd;
+    &quot;trackingNumber&quot;: &quot;BA-${__UUID}&quot;,&#xd;
+    &quot;originCity&quot;: &quot;Minsk&quot;,&#xd;
+    &quot;destinationCity&quot;: &quot;Warsaw&quot;,&#xd;
+    &quot;status&quot;: &quot;CREATED&quot;,&#xd;
+    &quot;customerId&quot;: ${customerId},&#xd;
+    &quot;managerId&quot;: ${managerId},&#xd;
+    &quot;vehicleIds&quot;: [${createdVehicleId}],&#xd;
+    &quot;cargoes&quot;: [&#xd;
+      {&#xd;
+        &quot;name&quot;: &quot;Bulk Cargo 1&quot;,&#xd;
+        &quot;weightKg&quot;: 110.00&#xd;
+      }&#xd;
+    ],&#xd;
+    &quot;schedule&quot;: {&#xd;
+      &quot;orderCreatedAt&quot;: &quot;2026-03-24T10:00:00&quot;,&#xd;
+      &quot;orderReceivedAt&quot;: &quot;2026-03-24T12:00:00&quot;,&#xd;
+      &quot;arrivalAt&quot;: &quot;2026-03-27T14:00:00&quot;&#xd;
+    }&#xd;
+  },&#xd;
+  {&#xd;
+    &quot;trackingNumber&quot;: &quot;BB-${__UUID}&quot;,&#xd;
+    &quot;originCity&quot;: &quot;Minsk&quot;,&#xd;
+    &quot;destinationCity&quot;: &quot;Vilnius&quot;,&#xd;
+    &quot;status&quot;: &quot;RECEIVED&quot;,&#xd;
+    &quot;customerId&quot;: ${customerId},&#xd;
+    &quot;managerId&quot;: ${managerId},&#xd;
+    &quot;vehicleIds&quot;: [${createdVehicleId}],&#xd;
+    &quot;cargoes&quot;: [&#xd;
+      {&#xd;
+        &quot;name&quot;: &quot;Bulk Cargo 2&quot;,&#xd;
+        &quot;weightKg&quot;: 210.00&#xd;
+      }&#xd;
+    ],&#xd;
+    &quot;schedule&quot;: {&#xd;
+      &quot;orderCreatedAt&quot;: &quot;2026-03-25T09:00:00&quot;,&#xd;
+      &quot;orderReceivedAt&quot;: &quot;2026-03-25T10:00:00&quot;,&#xd;
+      &quot;arrivalAt&quot;: &quot;2026-03-28T16:00:00&quot;&#xd;
+    }&#xd;
+  }&#xd;
+]</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST Shipment Bulk Demo Partial Save" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/shipments/bulk/demo/partial-save</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">[&#xd;
+  {&#xd;
+    &quot;trackingNumber&quot;: &quot;PBA-${__UUID}&quot;,&#xd;
+    &quot;originCity&quot;: &quot;Minsk&quot;,&#xd;
+    &quot;destinationCity&quot;: &quot;Berlin&quot;,&#xd;
+    &quot;status&quot;: &quot;CREATED&quot;,&#xd;
+    &quot;customerId&quot;: ${customerId},&#xd;
+    &quot;managerId&quot;: ${managerId},&#xd;
+    &quot;vehicleIds&quot;: [${createdVehicleId}],&#xd;
+    &quot;cargoes&quot;: [&#xd;
+      {&#xd;
+        &quot;name&quot;: &quot;Paper&quot;,&#xd;
+        &quot;weightKg&quot;: 150.00&#xd;
+      }&#xd;
+    ],&#xd;
+    &quot;schedule&quot;: {&#xd;
+      &quot;orderCreatedAt&quot;: &quot;2026-03-24T09:00:00&quot;,&#xd;
+      &quot;orderReceivedAt&quot;: &quot;2026-03-24T11:00:00&quot;,&#xd;
+      &quot;arrivalAt&quot;: &quot;2026-03-25T18:00:00&quot;&#xd;
+    }&#xd;
+  },&#xd;
+  {&#xd;
+    &quot;trackingNumber&quot;: &quot;PBB-${__UUID}&quot;,&#xd;
+    &quot;originCity&quot;: &quot;Minsk&quot;,&#xd;
+    &quot;destinationCity&quot;: &quot;Hamburg&quot;,&#xd;
+    &quot;status&quot;: &quot;CREATED&quot;,&#xd;
+    &quot;customerId&quot;: ${customerId},&#xd;
+    &quot;managerId&quot;: ${managerId},&#xd;
+    &quot;vehicleIds&quot;: [${createdVehicleId}],&#xd;
+    &quot;cargoes&quot;: [&#xd;
+      {&#xd;
+        &quot;name&quot;: &quot;Boxes&quot;,&#xd;
+        &quot;weightKg&quot;: 200.00&#xd;
+      }&#xd;
+    ],&#xd;
+    &quot;schedule&quot;: {&#xd;
+      &quot;orderCreatedAt&quot;: &quot;2026-03-24T09:30:00&quot;,&#xd;
+      &quot;orderReceivedAt&quot;: &quot;2026-03-24T11:30:00&quot;,&#xd;
+      &quot;arrivalAt&quot;: &quot;2026-03-26T12:00:00&quot;&#xd;
+    }&#xd;
+  }&#xd;
+]</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Accept Expected Bulk Partial Failure" enabled="true">
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="script">if (prev.getResponseCode() == &apos;500&apos; &amp;&amp; prev.getResponseDataAsString().contains(&apos;Intentional bulk failure after first saved shipment&apos;)) { prev.setSuccessful(true); prev.setResponseMessage(&apos;Expected bulk partial-save demo failure&apos;); }</stringProp>
+          </JSR223PostProcessor>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST Shipment Bulk Demo Rollback" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/shipments/bulk/demo/rollback</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">[&#xd;
+  {&#xd;
+    &quot;trackingNumber&quot;: &quot;RBA-${__UUID}&quot;,&#xd;
+    &quot;originCity&quot;: &quot;Minsk&quot;,&#xd;
+    &quot;destinationCity&quot;: &quot;Berlin&quot;,&#xd;
+    &quot;status&quot;: &quot;CREATED&quot;,&#xd;
+    &quot;customerId&quot;: ${customerId},&#xd;
+    &quot;managerId&quot;: ${managerId},&#xd;
+    &quot;vehicleIds&quot;: [${createdVehicleId}],&#xd;
+    &quot;cargoes&quot;: [&#xd;
+      {&#xd;
+        &quot;name&quot;: &quot;Paper&quot;,&#xd;
+        &quot;weightKg&quot;: 150.00&#xd;
+      }&#xd;
+    ],&#xd;
+    &quot;schedule&quot;: {&#xd;
+      &quot;orderCreatedAt&quot;: &quot;2026-03-24T09:00:00&quot;,&#xd;
+      &quot;orderReceivedAt&quot;: &quot;2026-03-24T11:00:00&quot;,&#xd;
+      &quot;arrivalAt&quot;: &quot;2026-03-25T18:00:00&quot;&#xd;
+    }&#xd;
+  },&#xd;
+  {&#xd;
+    &quot;trackingNumber&quot;: &quot;RBB-${__UUID}&quot;,&#xd;
+    &quot;originCity&quot;: &quot;Minsk&quot;,&#xd;
+    &quot;destinationCity&quot;: &quot;Hamburg&quot;,&#xd;
+    &quot;status&quot;: &quot;CREATED&quot;,&#xd;
+    &quot;customerId&quot;: ${customerId},&#xd;
+    &quot;managerId&quot;: ${managerId},&#xd;
+    &quot;vehicleIds&quot;: [${createdVehicleId}],&#xd;
+    &quot;cargoes&quot;: [&#xd;
+      {&#xd;
+        &quot;name&quot;: &quot;Boxes&quot;,&#xd;
+        &quot;weightKg&quot;: 200.00&#xd;
+      }&#xd;
+    ],&#xd;
+    &quot;schedule&quot;: {&#xd;
+      &quot;orderCreatedAt&quot;: &quot;2026-03-24T09:30:00&quot;,&#xd;
+      &quot;orderReceivedAt&quot;: &quot;2026-03-24T11:30:00&quot;,&#xd;
+      &quot;arrivalAt&quot;: &quot;2026-03-26T12:00:00&quot;&#xd;
+    }&#xd;
+  }&#xd;
+]</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Accept Expected Bulk Rollback Failure" enabled="true">
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="script">if (prev.getResponseCode() == &apos;500&apos; &amp;&amp; prev.getResponseDataAsString().contains(&apos;Intentional bulk failure after first saved shipment&apos;)) { prev.setSuccessful(true); prev.setResponseMessage(&apos;Expected bulk rollback demo failure&apos;); }</stringProp>
+          </JSR223PostProcessor>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST Atomic Counter Increment" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/concurrency/counter/atomic/increment</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="times" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.name">times</stringProp>
+                <stringProp name="Argument.value">100</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST Synchronized Counter Increment" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/concurrency/counter/synchronized/increment</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="times" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.name">times</stringProp>
+                <stringProp name="Argument.value">100</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET Race Condition Demo" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/concurrency/race-condition</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="threads" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.name">threads</stringProp>
+                <stringProp name="Argument.value">64</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+              <elementProp name="incrementsPerThread" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                <stringProp name="Argument.name">incrementsPerThread</stringProp>
+                <stringProp name="Argument.value">5000</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST Async Shipment Bulk" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/shipments/async/bulk</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">[&#xd;
+  {&#xd;
+    &quot;trackingNumber&quot;: &quot;ASA-${__UUID}&quot;,&#xd;
+    &quot;originCity&quot;: &quot;Minsk&quot;,&#xd;
+    &quot;destinationCity&quot;: &quot;Warsaw&quot;,&#xd;
+    &quot;status&quot;: &quot;CREATED&quot;,&#xd;
+    &quot;customerId&quot;: ${customerId},&#xd;
+    &quot;managerId&quot;: ${managerId},&#xd;
+    &quot;vehicleIds&quot;: [${createdVehicleId}],&#xd;
+    &quot;cargoes&quot;: [&#xd;
+      {&#xd;
+        &quot;name&quot;: &quot;Async Cargo 1&quot;,&#xd;
+        &quot;weightKg&quot;: 125.00&#xd;
+      }&#xd;
+    ],&#xd;
+    &quot;schedule&quot;: {&#xd;
+      &quot;orderCreatedAt&quot;: &quot;2026-04-21T09:00:00&quot;,&#xd;
+      &quot;orderReceivedAt&quot;: &quot;2026-04-21T10:00:00&quot;,&#xd;
+      &quot;arrivalAt&quot;: &quot;2026-04-24T18:00:00&quot;&#xd;
+    }&#xd;
+  },&#xd;
+  {&#xd;
+    &quot;trackingNumber&quot;: &quot;ASB-${__UUID}&quot;,&#xd;
+    &quot;originCity&quot;: &quot;Minsk&quot;,&#xd;
+    &quot;destinationCity&quot;: &quot;Prague&quot;,&#xd;
+    &quot;status&quot;: &quot;RECEIVED&quot;,&#xd;
+    &quot;customerId&quot;: ${customerId},&#xd;
+    &quot;managerId&quot;: ${managerId},&#xd;
+    &quot;vehicleIds&quot;: [${createdVehicleId}],&#xd;
+    &quot;cargoes&quot;: [&#xd;
+      {&#xd;
+        &quot;name&quot;: &quot;Async Cargo 2&quot;,&#xd;
+        &quot;weightKg&quot;: 240.00&#xd;
+      }&#xd;
+    ],&#xd;
+    &quot;schedule&quot;: {&#xd;
+      &quot;orderCreatedAt&quot;: &quot;2026-04-21T11:00:00&quot;,&#xd;
+      &quot;orderReceivedAt&quot;: &quot;2026-04-21T12:00:00&quot;,&#xd;
+      &quot;arrivalAt&quot;: &quot;2026-04-25T16:00:00&quot;&#xd;
+    }&#xd;
+  }&#xd;
+]</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract Async Task Id" enabled="true">
+            <stringProp name="JSONPostProcessor.referenceNames">asyncTaskId</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.taskId</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">1</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET All Async Tasks Before Delay" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/shipments/async/tasks</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Wait For Async Processing" enabled="true">
+          <stringProp name="ConstantTimer.delay">11000</stringProp>
+        </ConstantTimer>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET All Async Tasks After Delay" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/shipments/async/tasks</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET Async Task By Extracted Id" enabled="true">
+          <stringProp name="HTTPSampler.path">/api/shipments/async/tasks/${asyncTaskId}</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+          <boolProp name="ResultCollector.error_logging">true</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>true</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <sentBytes>true</sentBytes>
+              <url>true</url>
+              <threadCounts>true</threadCounts>
+              <idleTime>true</idleTime>
+              <connectTime>true</connectTime>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+        <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <sentBytes>true</sentBytes>
+              <url>true</url>
+              <threadCounts>true</threadCounts>
+              <idleTime>true</idleTime>
+              <connectTime>true</connectTime>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

@@ -2,6 +2,7 @@ package com.logisticsapplication.controller;
 
 import com.logisticsapplication.dto.request.ShipmentRequest;
 import com.logisticsapplication.dto.response.ApiErrorResponse;
+import com.logisticsapplication.dto.response.AsyncShipmentTaskOverviewResponse;
 import com.logisticsapplication.dto.response.AsyncShipmentTaskStatusResponse;
 import com.logisticsapplication.dto.response.AsyncTaskSubmittedResponse;
 import com.logisticsapplication.service.ShipmentAsyncService;
@@ -64,5 +65,12 @@ public class ShipmentAsyncController {
             @PathVariable @Positive(message = "taskId must be positive") Long taskId
     ) {
         return ResponseEntity.ok(shipmentAsyncService.getTaskStatus(taskId));
+    }
+
+    @GetMapping("/tasks")
+    @Operation(summary = "Получить список всех асинхронных задач")
+    @ApiResponse(responseCode = "200", description = "Список задач получен")
+    public ResponseEntity<AsyncShipmentTaskOverviewResponse> getAllTaskStatuses() {
+        return ResponseEntity.ok(shipmentAsyncService.getAllTaskStatuses());
     }
 }

@@ -1,5 +1,6 @@
 package com.logisticsapplication.dto.response;
 
+import com.logisticsapplication.dto.request.ShipmentRequest;
 import com.logisticsapplication.model.AsyncTaskStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
@@ -24,6 +25,9 @@ public class AsyncShipmentTaskStatusResponse {
 
     @Schema(example = "3")
     private int requestedShipments;
+
+    @Schema(description = "Исходные запросы, отправленные в асинхронную задачу")
+    private List<ShipmentRequest> submittedRequests;
 
     @Schema(example = "3")
     private int processedShipments;

@@ -12,7 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class ShipmentAsyncWorker {
 
-    private static final long SIMULATED_DELAY_MILLIS = 1500L;
+    private static final long SIMULATED_DELAY_MILLIS = 10000L;
 
     private final ShipmentService shipmentService;
     private final AsyncShipmentTaskRegistry taskRegistry;

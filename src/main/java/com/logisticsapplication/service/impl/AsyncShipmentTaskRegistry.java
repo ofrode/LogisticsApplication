@@ -1,9 +1,12 @@
 package com.logisticsapplication.service.impl;
 
+import com.logisticsapplication.dto.request.ShipmentRequest;
+import com.logisticsapplication.dto.response.AsyncShipmentTaskOverviewResponse;
 import com.logisticsapplication.dto.response.AsyncShipmentTaskStatusResponse;
 import com.logisticsapplication.dto.response.ShipmentResponse;
 import com.logisticsapplication.model.AsyncTaskStatus;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -19,12 +22,13 @@ public class AsyncShipmentTaskRegistry {
     private final ConcurrentMap<Long, AsyncShipmentTaskSnapshot> tasks =
             new ConcurrentHashMap<>();
 
-    public AsyncShipmentTaskStatusResponse createTask(int requestedShipments) {
+    public AsyncShipmentTaskStatusResponse createTask(List<ShipmentRequest> requests) {
         long taskId = taskIdSequence.incrementAndGet();
         AsyncShipmentTaskSnapshot snapshot = new AsyncShipmentTaskSnapshot(
                 taskId,
                 AsyncTaskStatus.PENDING,
-                requestedShipments,
+                List.copyOf(requests),
+                requests.size(),
                 0,
                 List.of(),
                 null,
@@ -79,6 +83,19 @@ public class AsyncShipmentTaskRegistry {
         return snapshot.toResponse();
     }
 
+    public AsyncShipmentTaskOverviewResponse getAllTasks() {
+        List<AsyncShipmentTaskStatusResponse> allTasks = tasks.values().stream()
+                .sorted(Comparator.comparing(AsyncShipmentTaskSnapshot::taskId).reversed())
+                .map(AsyncShipmentTaskSnapshot::toResponse)
+                .toList();
+        return new AsyncShipmentTaskOverviewResponse(
+                filterByStatus(allTasks, AsyncTaskStatus.PENDING),
+                filterByStatus(allTasks, AsyncTaskStatus.RUNNING),
+                filterByStatus(allTasks, AsyncTaskStatus.COMPLETED),
+                filterByStatus(allTasks, AsyncTaskStatus.FAILED)
+        );
+    }
+
     private void updateTask(Long taskId, TaskSnapshotUpdater updater) {
         tasks.compute(
                 taskId,
@@ -94,6 +111,15 @@ public class AsyncShipmentTaskRegistry {
         );
     }
 
+    private List<AsyncShipmentTaskStatusResponse> filterByStatus(
+            List<AsyncShipmentTaskStatusResponse> tasksToFilter,
+            AsyncTaskStatus status
+    ) {
+        return tasksToFilter.stream()
+                .filter(task -> task.getStatus() == status)
+                .toList();
+    }
+
     @FunctionalInterface
     private interface TaskSnapshotUpdater {
 
@@ -103,6 +129,7 @@ public class AsyncShipmentTaskRegistry {
     private record AsyncShipmentTaskSnapshot(
             Long taskId,
             AsyncTaskStatus status,
+            List<ShipmentRequest> submittedRequests,
             int requestedShipments,
             int processedShipments,
             List<Long> createdShipmentIds,
@@ -119,6 +146,7 @@ public class AsyncShipmentTaskRegistry {
             return new AsyncShipmentTaskSnapshot(
                     taskId,
                     newStatus,
+                    submittedRequests,
                     requestedShipments,
                     processedShipments,
                     createdShipmentIds,
@@ -139,6 +167,7 @@ public class AsyncShipmentTaskRegistry {
             return new AsyncShipmentTaskSnapshot(
                     taskId,
                     newStatus,
+                    submittedRequests,
                     requestedShipments,
                     newProcessedShipments,
                     newCreatedShipmentIds,
@@ -154,6 +183,7 @@ public class AsyncShipmentTaskRegistry {
                     taskId,
                     status,
                     requestedShipments,
+                    submittedRequests,
                     processedShipments,
                     createdShipmentIds,
                     errorMessage,

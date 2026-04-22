@@ -1,6 +1,7 @@
 package com.logisticsapplication.service.impl;
 
 import com.logisticsapplication.dto.request.ShipmentRequest;
+import com.logisticsapplication.dto.response.AsyncShipmentTaskOverviewResponse;
 import com.logisticsapplication.dto.response.AsyncShipmentTaskStatusResponse;
 import com.logisticsapplication.service.ShipmentAsyncService;
 import java.util.List;
@@ -22,7 +23,7 @@ public class ShipmentAsyncServiceImpl implements ShipmentAsyncService {
 
     @Override
     public Long submitBulkCreateTask(List<ShipmentRequest> requests) {
-        AsyncShipmentTaskStatusResponse task = taskRegistry.createTask(requests.size());
+        AsyncShipmentTaskStatusResponse task = taskRegistry.createTask(requests);
         shipmentAsyncWorker.processBulkCreation(task.getTaskId(), List.copyOf(requests));
         return task.getTaskId();
     }
@@ -30,5 +31,10 @@ public class ShipmentAsyncServiceImpl implements ShipmentAsyncService {
     @Override
     public AsyncShipmentTaskStatusResponse getTaskStatus(Long taskId) {
         return taskRegistry.getTask(taskId);
+    }
+
+    @Override
+    public AsyncShipmentTaskOverviewResponse getAllTaskStatuses() {
+        return taskRegistry.getAllTasks();
     }
 }
