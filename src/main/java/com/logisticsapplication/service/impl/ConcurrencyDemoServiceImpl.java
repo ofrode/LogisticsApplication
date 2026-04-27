@@ -148,11 +148,7 @@ public class ConcurrencyDemoServiceImpl implements ConcurrencyDemoService {
         private int value;
 
         private void increment() {
-            int currentValue = value;
-            if ((currentValue & 7) == 0) {
-                LockSupport.parkNanos(1L);
-            }
-            value = currentValue + 1;
+            value++;
         }
 
         private int getValue() {
