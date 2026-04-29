@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Logistics Application - международная логистика</title>
+  <meta
+      name="description"
+      content="Корпоративный визуал для логистической платформы: перевозки, грузы, маршруты и контроль статусов.">
+  <link rel="preconnect" href="https://images.unsplash.com">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="topbar">
+      <div class="container topbar__inner">
+        <a href="tel:+375173204118">+375 (17) 320-41-18</a>
+        <a href="mailto:info@logistics.app">info@logistics.app</a>
+        <span>Минск, Газеты Правда 11Г</span>
+      </div>
+    </div>
+
+    <nav class="navbar" aria-label="Основная навигация">
+      <div class="container navbar__inner">
+        <a class="brand" href="/" aria-label="Logistics Application">
+          <span class="brand__mark">LA</span>
+          <span>
+            <strong>Logistics</strong>
+            <small>Application</small>
+          </span>
+        </a>
+
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <div class="nav-menu" id="site-menu">
+          <a href="#services">Услуги</a>
+          <a href="#routes">Маршруты</a>
+          <a href="#control">Контроль</a>
+          <button class="nav-menu__button" type="button" data-account-modal-open>Пользователь</button>
+          <a href="#contacts">Контакты</a>
+          <a class="nav-menu__api" href="/swagger-ui.html">API</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero__media" aria-hidden="true"></div>
+      <div class="container hero__inner">
+        <div class="hero__content">
+          <p class="eyebrow">International freight management</p>
+          <h1>Доставка грузов под контролем на каждом этапе</h1>
+          <p class="hero__lead">
+            Организуем автомобильные, морские, авиа и мультимодальные перевозки,
+            а цифровая платформа помогает видеть статусы, грузы и расписания в одном окне.
+          </p>
+          <div class="hero__actions">
+            <a class="button button--primary" href="#request">Оставить заявку</a>
+            <button class="button button--ghost" type="button" data-account-modal-open>Регистрация</button>
+            <a class="button button--ghost" href="#services">Смотреть услуги</a>
+          </div>
+        </div>
+
+        <aside class="shipment-panel" aria-label="Сводка перевозки">
+          <div class="shipment-panel__header">
+            <span>Активный рейс</span>
+            <strong>BY-4729</strong>
+          </div>
+          <div class="route-line">
+            <span>Минск</span>
+            <i></i>
+            <span>Варшава</span>
+            <i></i>
+            <span>Гамбург</span>
+          </div>
+          <dl class="shipment-panel__stats">
+            <div>
+              <dt>ETA</dt>
+              <dd>18 ч</dd>
+            </div>
+            <div>
+              <dt>Статус</dt>
+              <dd>В пути</dd>
+            </div>
+            <div>
+              <dt>Груз</dt>
+              <dd>12.4 т</dd>
+            </div>
+          </dl>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section section--intro" id="services">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">Our services</p>
+          <h2>Полный цикл международной логистики</h2>
+          <p>
+            Визуал вдохновлен деловой подачей cargo.by: контактная шапка,
+            ясное меню, транспортный фокус и понятные точки входа для клиента.
+          </p>
+        </div>
+
+        <div class="services-grid">
+          <article class="service-card">
+            <span class="service-card__icon">01</span>
+            <h3>Автоперевозки</h3>
+            <p>Сборные и выделенные машины по Европе и СНГ с контролем сроков.</p>
+          </article>
+          <article class="service-card">
+            <span class="service-card__icon">02</span>
+            <h3>Морской фрахт</h3>
+            <p>Контейнерные поставки, документация и сопровождение портовых этапов.</p>
+          </article>
+          <article class="service-card">
+            <span class="service-card__icon">03</span>
+            <h3>Авиадоставка</h3>
+            <p>Срочные грузы с прозрачным отслеживанием и приоритетной обработкой.</p>
+          </article>
+          <article class="service-card">
+            <span class="service-card__icon">04</span>
+            <h3>Мультимодальные схемы</h3>
+            <p>Комбинация транспорта под бюджет, сроки и требования к грузу.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section route-showcase" id="routes">
+      <div class="container route-showcase__inner">
+        <div>
+          <p class="eyebrow">Route network</p>
+          <h2>Маршруты строятся вокруг груза, а не наоборот</h2>
+          <p>
+            Платформа подходит для CRM-подобного кабинета логистики:
+            заявки, транспорт, расписания и грузы могут жить рядом с публичным сайтом.
+          </p>
+        </div>
+        <div class="route-board" aria-label="Примеры направлений">
+          <div><strong>BY</strong><span>Минск</span></div>
+          <div><strong>PL</strong><span>Варшава</span></div>
+          <div><strong>DE</strong><span>Гамбург</span></div>
+          <div><strong>NL</strong><span>Роттердам</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section control-section" id="control">
+      <div class="container control-section__inner">
+        <div class="metric">
+          <strong>24/7</strong>
+          <span>Мониторинг статусов</span>
+        </div>
+        <div class="metric">
+          <strong>300+</strong>
+          <span>Параллельных запросов</span>
+        </div>
+        <div class="metric">
+          <strong>API</strong>
+          <span>Интеграция с сервисами</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section request-section" id="request">
+      <div class="container request-section__inner">
+        <div>
+          <p class="eyebrow">Request</p>
+          <h2>Оставьте заявку, и мы рассчитаем маршрут</h2>
+          <p>
+            Укажите направление, тип груза и контакт. Форма сделана как визуальная часть сайта;
+            для реальной отправки ее можно подключить к отдельному endpoint.
+          </p>
+        </div>
+
+        <form class="request-form" id="request-form">
+          <label>
+            Ваше имя
+            <input name="name" type="text" placeholder="Алексей" required>
+          </label>
+          <label>
+            Телефон
+            <input name="phone" type="tel" placeholder="+375 ..." required>
+          </label>
+          <label>
+            Сообщение
+            <textarea name="message" rows="4" placeholder="Направление, вес, сроки"></textarea>
+          </label>
+          <button class="button button--primary" type="submit">Отправить</button>
+          <p class="form-status request-form-status" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" id="contacts">
+    <div class="container footer__inner">
+      <div>
+        <strong>Logistics Application</strong>
+        <span>Корпоративный сайт и API для логистики</span>
+      </div>
+      <div>
+        <a href="/api/health">Health</a>
+        <a href="/swagger-ui.html">Swagger</a>
+      </div>
+    </div>
+  </footer>
+
+  <div class="account-modal" id="account-modal" aria-hidden="true">
+    <div class="account-modal__overlay" data-account-modal-close></div>
+    <section
+        class="account-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="account-modal-title">
+      <div class="account-dialog__header">
+        <div>
+          <p class="eyebrow">User account</p>
+          <h2 id="account-modal-title">Пользователь</h2>
+        </div>
+        <button class="account-dialog__close" type="button" aria-label="Закрыть" data-account-modal-close>
+          ×
+        </button>
+      </div>
+
+      <div class="account-tabs" role="tablist" aria-label="Действия с пользователем">
+        <button
+            class="account-tabs__button is-active"
+            id="create-user-tab"
+            type="button"
+            role="tab"
+            aria-selected="true"
+            aria-controls="create-user-panel"
+            data-account-tab="create">
+          Создать пользователя
+        </button>
+        <button
+            class="account-tabs__button"
+            id="register-tab"
+            type="button"
+            role="tab"
+            aria-selected="false"
+            aria-controls="register-panel"
+            data-account-tab="register">
+          Регистрация
+        </button>
+      </div>
+
+      <div class="account-panel is-active" id="create-user-panel" role="tabpanel" aria-labelledby="create-user-tab">
+        <form class="request-form account-form" id="create-user-form">
+          <label>
+            Имя
+            <input name="firstName" type="text" placeholder="Иван" required maxlength="100">
+          </label>
+          <label>
+            Фамилия
+            <input name="lastName" type="text" placeholder="Иванов" required maxlength="100">
+          </label>
+          <label>
+            Email / логин
+            <input name="email" type="email" placeholder="ivan@example.com" required maxlength="255">
+          </label>
+          <label>
+            Роль
+            <select name="role" required>
+              <option value="CUSTOMER">CUSTOMER</option>
+              <option value="MANAGER">MANAGER</option>
+              <option value="CARRIER">CARRIER</option>
+              <option value="ADMIN">ADMIN</option>
+            </select>
+          </label>
+          <button class="button button--primary" type="submit">Создать пользователя</button>
+          <p class="form-status create-user-form-status" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+
+      <div class="account-panel" id="register-panel" role="tabpanel" aria-labelledby="register-tab" hidden>
+        <form class="request-form account-form" id="register-form">
+          <label>
+            Имя
+            <input name="firstName" type="text" placeholder="Анна" required maxlength="100">
+          </label>
+          <label>
+            Фамилия
+            <input name="lastName" type="text" placeholder="Смирнова" required maxlength="100">
+          </label>
+          <label>
+            Email / логин
+            <input name="email" type="email" placeholder="anna@example.com" required maxlength="255">
+          </label>
+          <input name="role" type="hidden" value="CUSTOMER">
+          <button class="button button--primary" type="submit">Зарегистрироваться</button>
+          <p class="form-status register-form-status" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <script src="/script.js"></script>
+</body>
+</html>

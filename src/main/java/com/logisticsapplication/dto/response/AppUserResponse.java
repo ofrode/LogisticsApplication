@@ -22,6 +22,11 @@ public class AppUserResponse {
     private String lastName;
     @Schema(example = "ivan.ivanov@example.com")
     private String email;
+    @Schema(
+            description = "Логин пользователя. Совпадает с email.",
+            example = "ivan.ivanov@example.com"
+    )
+    private String login;
     @Schema(example = "MANAGER")
     private UserRole role;
 }

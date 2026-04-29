@@ -59,8 +59,58 @@ class AppUserServiceImplTest {
 
         assertThat(response.getId()).isEqualTo(15L);
         assertThat(response.getEmail()).isEqualTo("maksim@test.local");
+        assertThat(response.getLogin()).isEqualTo("maksim@test.local");
         assertThat(response.getRole()).isEqualTo(UserRole.MANAGER);
         verify(shipmentSearchIndex).invalidateAll();
+    }
+
+    @Test
+    void createNormalizesEmailAsLogin() {
+        UserRoleLookup customerRole = new UserRoleLookup(1L, UserRole.CUSTOMER.name());
+        when(userRoleLookupRepository.findByCode(UserRole.CUSTOMER.name()))
+                .thenReturn(Optional.of(customerRole));
+        when(appUserRepository.save(any(AppUser.class))).thenAnswer(invocation -> {
+            AppUser user = invocation.getArgument(0);
+            user.setId(16L);
+            return user;
+        });
+
+        AppUserResponse response = appUserService.create(request(
+                "Ivan",
+                "Ivanov",
+                "  IVAN@TEST.LOCAL  ",
+                UserRole.CUSTOMER
+        ));
+
+        assertThat(response.getEmail()).isEqualTo("ivan@test.local");
+        assertThat(response.getLogin()).isEqualTo("ivan@test.local");
+    }
+
+    @Test
+    void createRejectsDuplicateEmailLogin() {
+        when(appUserRepository.findByEmailIgnoreCase("maksim@test.local"))
+                .thenReturn(Optional.of(new AppUser(
+                        15L,
+                        "Maksim",
+                        "Efimchik",
+                        "maksim@test.local",
+                        new UserRoleLookup(2L, UserRole.MANAGER.name()),
+                        List.of(),
+                        List.of(),
+                        List.of()
+                )));
+
+        assertThatThrownBy(() -> appUserService.create(request(
+                "Other",
+                "User",
+                "Maksim@Test.Local",
+                UserRole.CUSTOMER
+        )))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("User login already exists: maksim@test.local");
+
+        verify(appUserRepository, never()).save(any(AppUser.class));
+        verify(shipmentSearchIndex, never()).invalidateAll();
     }
 
     @Test
@@ -109,11 +159,83 @@ class AppUserServiceImplTest {
 
         assertThat(response.getId()).isEqualTo(9L);
         assertThat(response.getEmail()).isEqualTo("new-manager@test.local");
+        assertThat(response.getLogin()).isEqualTo("new-manager@test.local");
         assertThat(response.getRole()).isEqualTo(UserRole.MANAGER);
         assertThat(existingUser.getFirstName()).isEqualTo("New");
         assertThat(existingUser.getLastName()).isEqualTo("Manager");
         assertThat(existingUser.getRole()).isEqualTo(managerRole);
         verify(shipmentSearchIndex).invalidateAll();
+    }
+
+    @Test
+    void updateAllowsKeepingSameEmailLogin() {
+        UserRoleLookup managerRole = new UserRoleLookup(2L, UserRole.MANAGER.name());
+        AppUser existingUser = new AppUser(
+                9L,
+                "Old",
+                "Name",
+                "manager@test.local",
+                managerRole,
+                List.of(),
+                List.of(),
+                List.of()
+        );
+        when(appUserRepository.findById(9L)).thenReturn(Optional.of(existingUser));
+        when(appUserRepository.findByEmailIgnoreCase("manager@test.local"))
+                .thenReturn(Optional.of(existingUser));
+        when(userRoleLookupRepository.findByCode(UserRole.MANAGER.name()))
+                .thenReturn(Optional.of(managerRole));
+        when(appUserRepository.save(existingUser)).thenReturn(existingUser);
+
+        AppUserResponse response = appUserService.update(9L, request(
+                "Updated",
+                "Manager",
+                "manager@test.local",
+                UserRole.MANAGER
+        ));
+
+        assertThat(response.getLogin()).isEqualTo("manager@test.local");
+        verify(shipmentSearchIndex).invalidateAll();
+    }
+
+    @Test
+    void updateRejectsDuplicateEmailLoginFromAnotherUser() {
+        UserRoleLookup customerRole = new UserRoleLookup(1L, UserRole.CUSTOMER.name());
+        AppUser existingUser = new AppUser(
+                9L,
+                "Old",
+                "Name",
+                "old@test.local",
+                customerRole,
+                List.of(),
+                List.of(),
+                List.of()
+        );
+        AppUser otherUser = new AppUser(
+                10L,
+                "Other",
+                "User",
+                "other@test.local",
+                customerRole,
+                List.of(),
+                List.of(),
+                List.of()
+        );
+        when(appUserRepository.findById(9L)).thenReturn(Optional.of(existingUser));
+        when(appUserRepository.findByEmailIgnoreCase("other@test.local"))
+                .thenReturn(Optional.of(otherUser));
+
+        assertThatThrownBy(() -> appUserService.update(9L, request(
+                "Old",
+                "Name",
+                "other@test.local",
+                UserRole.CUSTOMER
+        )))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("User login already exists: other@test.local");
+
+        verify(appUserRepository, never()).save(any(AppUser.class));
+        verify(shipmentSearchIndex, never()).invalidateAll();
     }
 
     @Test
