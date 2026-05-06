@@ -28,7 +28,7 @@
       <section class="dashboard-hero dashboard-hero--carrier">
         <div class="container dashboard-hero__grid">
           <div>
-            <p class="eyebrow">Carrier dashboard</p>
+            <p class="eyebrow">Перевозчик</p>
             <h1>Мои рейсы и транспорт</h1>
             <p>Перевозчик видит только свои заявки, свои транспортные средства и грузы по закреплённым отправлениям.</p>
           </div>
@@ -44,7 +44,6 @@
                 <h2>Мои заявки</h2>
                 <p class="panel-card__text">Только отправления, в которых участвует ваш транспорт.</p>
               </div>
-              <button class="button button--secondary" type="button" id="refresh-carrier-shipments-button">Обновить</button>
             </div>
             <div class="stats-grid stats-grid--compact">
               <article class="stat-card"><span>Всего заявок</span><strong data-carrier-stat="total">0</strong></article>
@@ -62,37 +61,16 @@
                 <h2>Мой транспорт</h2>
                 <p class="panel-card__text">Просмотр и изменение закреплённых транспортных средств.</p>
               </div>
-              <button class="button button--secondary" type="button" id="refresh-carrier-vehicles-button">Обновить</button>
+              <button class="button button--secondary" type="button" id="carrier-vehicle-create" data-modal-open="carrier-vehicle-modal">Создать / изменить</button>
             </div>
             <div class="dashboard-grid">
               <div>
                 <p class="form-status carrier-vehicles-status" role="status" aria-live="polite"></p>
                 <div class="user-table" id="carrier-vehicles-list"></div>
               </div>
-              <form class="form-card" id="carrier-vehicle-form">
-                <input name="id" type="hidden">
-                <input name="carrierId" type="hidden">
-                <label>
-                  Регистрационный номер
-                  <input name="registrationNumber" type="text" required maxlength="30">
-                </label>
-                <div class="form-grid">
-                  <label>
-                    Грузоподъёмность, кг
-                    <input name="capacityKg" type="number" step="0.01" min="0.01" required>
-                  </label>
-                  <label>
-                    Перевозчик
-                    <input name="carrierDisplay" type="text" readonly>
-                  </label>
-                </div>
-                <div class="admin-form-actions">
-                  <button class="button button--primary" type="submit">Сохранить</button>
-                  <button class="button button--secondary" type="button" id="carrier-vehicle-create">Создать новое</button>
-                  <button class="button button--secondary" type="button" id="carrier-vehicle-form-reset">Сбросить</button>
-                </div>
-                <p class="form-status carrier-vehicle-form-status" role="status" aria-live="polite"></p>
-              </form>
+              <div class="panel-card panel-card--muted">
+                <p class="panel-card__text">Создание и изменение транспорта выполняется в модальном окне.</p>
+              </div>
             </div>
           </section>
 
@@ -102,7 +80,6 @@
                 <h2>Грузы</h2>
                 <p class="panel-card__text">Просмотр грузов по вашим заявкам.</p>
               </div>
-              <button class="button button--secondary" type="button" id="refresh-carrier-cargoes-button">Обновить</button>
             </div>
             <p class="form-status carrier-cargoes-status" role="status" aria-live="polite"></p>
             <div class="user-table" id="carrier-cargoes-list"></div>
@@ -110,8 +87,87 @@
         </div>
       </section>
     </main>
+
+    <div class="modal-shell" id="carrier-vehicle-modal" hidden>
+      <div class="modal-backdrop" data-modal-close></div>
+      <section class="modal-card">
+        <div class="panel-card__header panel-card__header--split">
+          <h2>Транспортное средство</h2>
+          <button class="button button--secondary" type="button" data-modal-close>Закрыть</button>
+        </div>
+        <form class="form-card" id="carrier-vehicle-form">
+          <input name="id" type="hidden">
+          <input name="carrierId" type="hidden">
+          <label><span>Регистрационный номер</span><input name="registrationNumber" type="text" required maxlength="30"></label>
+          <div class="form-grid">
+            <label><span>Грузоподъёмность, кг</span><input name="capacityKg" type="number" step="0.01" min="0.01" required></label>
+            <label><span>Перевозчик</span><input name="carrierDisplay" type="text" readonly></label>
+          </div>
+          <div class="admin-form-actions">
+            <button class="button button--primary" type="submit">Сохранить</button>
+            <button class="button button--secondary" type="button" id="carrier-vehicle-form-reset">Сбросить</button>
+          </div>
+          <p class="form-status carrier-vehicle-form-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </div>
   </div>
 
   <script src="/script.js"></script>
+  <script>
+    (function () {
+      const vehiclesList = document.getElementById("carrier-vehicles-list");
+      const modal = document.getElementById("carrier-vehicle-modal");
+      const createButton = document.getElementById("carrier-vehicle-create");
+      const backdrop = modal ? modal.querySelector(".modal-backdrop") : null;
+
+      if (!vehiclesList || !modal) {
+        return;
+      }
+
+      function openCarrierVehicleModal() {
+        modal.hidden = false;
+        document.body.classList.add("modal-open");
+      }
+
+      function closeCarrierVehicleModal() {
+        modal.hidden = true;
+        document.body.classList.remove("modal-open");
+      }
+
+      vehiclesList.addEventListener("click", function (event) {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+          return;
+        }
+        const button = target.closest("[data-open-carrier-vehicle-modal='true'], [data-carrier-vehicle-edit]");
+        if (!button) {
+          return;
+        }
+        const vehicleRaw = button.getAttribute("data-carrier-vehicle-edit");
+        if (!vehicleRaw || typeof window.fillCarrierVehicleForm !== "function") {
+          return;
+        }
+        try {
+          window.fillCarrierVehicleForm(JSON.parse(vehicleRaw));
+          openCarrierVehicleModal();
+        } catch (error) {
+          console.error(error);
+        }
+      });
+
+      if (createButton) {
+        createButton.addEventListener("click", function () {
+          openCarrierVehicleModal();
+        });
+      }
+
+      if (backdrop) {
+        backdrop.addEventListener("click", closeCarrierVehicleModal);
+      }
+
+      window.closeCarrierVehicleModal = closeCarrierVehicleModal;
+    })();
+  </script>
 </body>
 </html>

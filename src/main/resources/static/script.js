@@ -11,25 +11,21 @@ const adminUsersStatus = document.querySelector(".admin-users-status");
 const adminUserForm = document.querySelector("#admin-user-form");
 const adminUserFormStatus = document.querySelector(".admin-user-form-status");
 const adminUserFormReset = document.querySelector("#admin-user-form-reset");
-const refreshUsersButton = document.querySelector("#refresh-users-button");
 
 const adminShipmentsList = document.querySelector("#admin-shipments-list");
 const adminShipmentsStatus = document.querySelector(".admin-shipments-status");
 const adminShipmentForm = document.querySelector("#admin-shipment-form");
 const adminShipmentFormStatus = document.querySelector(".admin-shipment-form-status");
 const adminShipmentFormReset = document.querySelector("#admin-shipment-form-reset");
-const refreshShipmentsButton = document.querySelector("#refresh-shipments-button");
 
 const adminVehiclesList = document.querySelector("#admin-vehicles-list");
 const adminVehiclesStatus = document.querySelector(".admin-vehicles-status");
-const refreshVehiclesButton = document.querySelector("#refresh-vehicles-button");
 
 const adminCargoesList = document.querySelector("#admin-cargoes-list");
 const adminCargoesStatus = document.querySelector(".admin-cargoes-status");
 const adminCargoForm = document.querySelector("#admin-cargo-form");
 const adminCargoFormStatus = document.querySelector(".admin-cargo-form-status");
 const adminCargoFormReset = document.querySelector("#admin-cargo-form-reset");
-const refreshCargoesButton = document.querySelector("#refresh-cargoes-button");
 
 const managerShipmentsList = document.querySelector("#manager-shipments-list");
 const managerShipmentsStatus = document.querySelector(".manager-shipments-status");
@@ -37,23 +33,18 @@ const managerShipmentForm = document.querySelector("#manager-shipment-form");
 const managerShipmentFormStatus = document.querySelector(".manager-shipment-form-status");
 const managerShipmentFormReset = document.querySelector("#manager-shipment-form-reset");
 const managerShipmentCreate = document.querySelector("#manager-shipment-create");
-const refreshManagerShipmentsButton = document.querySelector("#refresh-manager-shipments-button");
 
 const managerVehiclesList = document.querySelector("#manager-vehicles-list");
 const managerVehiclesStatus = document.querySelector(".manager-vehicles-status");
-const refreshManagerVehiclesButton = document.querySelector("#refresh-manager-vehicles-button");
 
 const managerCargoesList = document.querySelector("#manager-cargoes-list");
 const managerCargoesStatus = document.querySelector(".manager-cargoes-status");
-const refreshManagerCargoesButton = document.querySelector("#refresh-manager-cargoes-button");
 
 const customerShipmentsList = document.querySelector("#customer-shipments-list");
 const customerShipmentsStatus = document.querySelector(".customer-shipments-status");
-const refreshCustomerShipmentsButton = document.querySelector("#refresh-customer-shipments-button");
 
 const carrierShipmentsList = document.querySelector("#carrier-shipments-list");
 const carrierShipmentsStatus = document.querySelector(".carrier-shipments-status");
-const refreshCarrierShipmentsButton = document.querySelector("#refresh-carrier-shipments-button");
 
 const carrierVehiclesList = document.querySelector("#carrier-vehicles-list");
 const carrierVehiclesStatus = document.querySelector(".carrier-vehicles-status");
@@ -61,13 +52,13 @@ const carrierVehicleForm = document.querySelector("#carrier-vehicle-form");
 const carrierVehicleFormStatus = document.querySelector(".carrier-vehicle-form-status");
 const carrierVehicleFormReset = document.querySelector("#carrier-vehicle-form-reset");
 const carrierVehicleCreate = document.querySelector("#carrier-vehicle-create");
-const refreshCarrierVehiclesButton = document.querySelector("#refresh-carrier-vehicles-button");
 
 const carrierCargoesList = document.querySelector("#carrier-cargoes-list");
 const carrierCargoesStatus = document.querySelector(".carrier-cargoes-status");
-const refreshCarrierCargoesButton = document.querySelector("#refresh-carrier-cargoes-button");
 
 let cachedShipments = [];
+let cachedUsers = [];
+window.cachedShipments = cachedShipments;
 
 function saveCurrentUser(user) {
   window.localStorage.setItem("logistics-current-user", JSON.stringify(user));
@@ -84,6 +75,59 @@ function getCurrentUser() {
     return null;
   }
 }
+
+function openModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (!modal) {
+    return;
+  }
+  modal.hidden = false;
+  document.body.classList.add("modal-open");
+}
+
+function closeModal(modalElement) {
+  if (!modalElement) {
+    return;
+  }
+  modalElement.hidden = true;
+  if (!document.querySelector(".modal-shell:not([hidden])")) {
+    document.body.classList.remove("modal-open");
+  }
+}
+
+document.addEventListener("click", (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) {
+    return;
+  }
+
+  const openButton = target.closest("[data-modal-open]");
+  if (openButton instanceof HTMLElement) {
+    const modalId = openButton.getAttribute("data-modal-open");
+    if (modalId) {
+      openModal(modalId);
+    }
+    return;
+  }
+
+  const closeButton = target.closest("[data-modal-close]");
+  if (closeButton instanceof HTMLElement) {
+    const modal = closeButton.closest(".modal-shell");
+    if (modal instanceof HTMLElement) {
+      closeModal(modal);
+    }
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") {
+    return;
+  }
+  const openedModal = document.querySelector(".modal-shell:not([hidden])");
+  if (openedModal instanceof HTMLElement) {
+    closeModal(openedModal);
+  }
+});
 
 if (navToggle && navMenu) {
   navToggle.addEventListener("click", () => {
@@ -262,6 +306,29 @@ function resetAdminUserForm() {
   resetStatus(adminUserFormStatus, "Выберите пользователя из списка для редактирования.");
 }
 
+function openAdminUserModalFromButton(button) {
+  if (!(button instanceof HTMLElement)) {
+    return;
+  }
+  const user = {
+    id: Number(button.dataset.userId),
+    firstName: button.dataset.firstName || "",
+    lastName: button.dataset.lastName || "",
+    email: button.dataset.email || "",
+    login: button.dataset.login || "",
+    role: button.dataset.role || "CUSTOMER"
+  };
+  if (!user.id) {
+    resetStatus(adminUsersStatus, "Не удалось найти пользователя для редактирования.");
+    return;
+  }
+  fillAdminUserForm(user);
+  openModal("admin-user-modal");
+}
+
+window.openAdminUserModalFromButton = openAdminUserModalFromButton;
+window.closeAdminUserModal = () => closeModal(document.getElementById("admin-user-modal"));
+
 function updateUserStats(users) {
   const admins = users.filter((user) => user.role === "ADMIN").length;
   const managers = users.filter((user) => user.role === "MANAGER").length;
@@ -290,7 +357,17 @@ function renderUsers(users) {
         <span>${escapeHtml(user.login)}</span>
       </div>
       <div class="user-row__actions">
-        <button class="button button--secondary" type="button" data-user-edit='${escapeHtml(JSON.stringify(user))}'>Изменить</button>
+        <button
+          class="button button--secondary"
+          type="button"
+          data-open-user-modal="true"
+          data-user-id="${user.id}"
+          data-first-name="${escapeHtml(user.firstName)}"
+          data-last-name="${escapeHtml(user.lastName)}"
+          data-email="${escapeHtml(user.email)}"
+          data-login="${escapeHtml(user.login)}"
+          data-role="${escapeHtml(user.role)}"
+          onclick="window.openAdminUserModalFromButton(this)">Изменить</button>
         <button class="button button--danger" type="button" data-user-delete="${user.id}">Удалить</button>
       </div>
     </article>
@@ -307,9 +384,9 @@ async function loadUsers() {
       const error = await response.json().catch(() => ({}));
       throw new Error(error.message || `Ошибка ${response.status}`);
     }
-    const users = await response.json();
-    renderUsers(users);
-    resetStatus(adminUsersStatus, `Загружено пользователей: ${users.length}.`);
+    cachedUsers = await response.json();
+    renderUsers(cachedUsers);
+    resetStatus(adminUsersStatus, `Загружено пользователей: ${cachedUsers.length}.`);
   } catch (error) {
     resetStatus(adminUsersStatus, error.message || "Не удалось загрузить пользователей.");
   }
@@ -350,6 +427,7 @@ function fillShipmentForm(shipment) {
   adminShipmentForm.elements.arrivalAt.value = formatDateTimeForInput(shipment.schedule.arrivalAt);
   resetStatus(adminShipmentFormStatus, `Редактируется заявка #${shipment.id}.`);
 }
+window.fillShipmentForm = fillShipmentForm;
 
 function resetShipmentForm() {
   adminShipmentForm.reset();
@@ -374,7 +452,7 @@ function renderShipments(shipments) {
         <span>Грузы: ${shipment.cargoes.length}, Транспорт: ${shipment.vehicles.length}</span>
       </div>
       <div class="user-row__actions">
-        <button class="button button--secondary" type="button" data-shipment-edit="${shipment.id}">Изменить</button>
+        <button class="button button--secondary" type="button" data-open-shipment-modal="true" data-shipment-edit="${shipment.id}">Изменить</button>
         <button class="button button--danger" type="button" data-shipment-delete="${shipment.id}">Удалить</button>
       </div>
     </article>
@@ -390,6 +468,7 @@ async function loadShipments() {
       throw new Error(error.message || `Ошибка ${response.status}`);
     }
     cachedShipments = await response.json();
+    window.cachedShipments = cachedShipments;
     renderShipments(cachedShipments);
     resetStatus(adminShipmentsStatus, `Загружено заявок: ${cachedShipments.length}.`);
   } catch (error) {
@@ -476,6 +555,7 @@ function fillCargoForm(cargo) {
   adminCargoForm.elements.shipmentId.value = String(cargo.shipmentId);
   resetStatus(adminCargoFormStatus, `Редактируется груз #${cargo.id}.`);
 }
+window.fillCargoForm = fillCargoForm;
 
 function resetCargoForm() {
   adminCargoForm.reset();
@@ -500,7 +580,7 @@ function renderCargoes(cargoes) {
         <span>${escapeHtml(`${cargo.shipmentTrackingNumber} (#${cargo.shipmentId})`)}</span>
       </div>
       <div class="user-row__actions">
-        <button class="button button--secondary" type="button" data-cargo-edit='${escapeHtml(JSON.stringify(cargo))}'>Изменить</button>
+        <button class="button button--secondary" type="button" data-open-cargo-modal="true" data-cargo-edit='${escapeHtml(JSON.stringify(cargo))}'>Изменить</button>
         <button class="button button--danger" type="button" data-cargo-delete="${cargo.id}">Удалить</button>
       </div>
     </article>
@@ -571,6 +651,7 @@ function fillManagerShipmentForm(shipment) {
   managerShipmentForm.elements.arrivalAt.value = formatDateTimeForInput(shipment.schedule.arrivalAt);
   resetStatus(managerShipmentFormStatus, `Редактируется заявка #${shipment.id}.`);
 }
+window.fillManagerShipmentForm = fillManagerShipmentForm;
 
 function resetManagerShipmentForm() {
   if (!managerShipmentForm) {
@@ -599,7 +680,7 @@ function renderManagerShipments(shipments) {
         <span>Клиент: ${escapeHtml(shipment.customer.login)}</span>
       </div>
       <div class="user-row__actions">
-        <button class="button button--secondary" type="button" data-manager-shipment-edit="${shipment.id}">Изменить</button>
+        <button class="button button--secondary" type="button" data-open-manager-shipment-modal="true" data-manager-shipment-edit="${shipment.id}">Изменить</button>
         <button class="button button--danger" type="button" data-manager-shipment-delete="${shipment.id}">Удалить</button>
       </div>
     </article>
@@ -617,6 +698,7 @@ async function loadManagerShipments() {
       throw new Error(error.message || `Ошибка ${response.status}`);
     }
     cachedShipments = await response.json();
+    window.cachedShipments = cachedShipments;
     renderManagerShipments(cachedShipments);
     resetStatus(managerShipmentsStatus, `Загружено заявок: ${cachedShipments.length}.`);
   } catch (error) {
@@ -666,6 +748,7 @@ async function createManagerShipment() {
     await loadManagerCargoes();
     resetManagerShipmentForm();
     resetStatus(managerShipmentFormStatus, "Заявка создана.");
+    closeModal(document.getElementById("manager-shipment-modal"));
   } catch (error) {
     resetStatus(managerShipmentFormStatus, error.message || "Не удалось создать заявку.");
   }
@@ -713,6 +796,7 @@ async function updateManagerShipment() {
     }
     await loadManagerShipments();
     resetStatus(managerShipmentFormStatus, `Заявка #${shipmentId} обновлена.`);
+    closeModal(document.getElementById("manager-shipment-modal"));
   } catch (error) {
     resetStatus(managerShipmentFormStatus, error.message || "Не удалось обновить заявку.");
   }
@@ -817,10 +901,6 @@ if (pageType === "admin") {
   loadCargoes();
   hydrateShipmentFormOptions(adminShipmentForm, adminShipmentFormStatus);
 
-  refreshUsersButton?.addEventListener("click", loadUsers);
-  refreshShipmentsButton?.addEventListener("click", loadShipments);
-  refreshVehiclesButton?.addEventListener("click", loadVehicles);
-  refreshCargoesButton?.addEventListener("click", loadCargoes);
   adminUserFormReset?.addEventListener("click", resetAdminUserForm);
   adminShipmentFormReset?.addEventListener("click", resetShipmentForm);
   adminCargoFormReset?.addEventListener("click", resetCargoForm);
@@ -828,11 +908,6 @@ if (pageType === "admin") {
   adminUsersList?.addEventListener("click", async (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) {
-      return;
-    }
-    const editButton = target.closest("[data-user-edit]");
-    if (editButton instanceof HTMLButtonElement) {
-      fillAdminUserForm(JSON.parse(editButton.dataset.userEdit || "{}"));
       return;
     }
     const deleteButton = target.closest("[data-user-delete]");
@@ -853,6 +928,7 @@ if (pageType === "admin") {
       const shipment = cachedShipments.find((item) => String(item.id) === editButton.dataset.shipmentEdit);
       if (shipment) {
         fillShipmentForm(shipment);
+        openModal("admin-shipment-modal");
       }
       return;
     }
@@ -885,6 +961,7 @@ if (pageType === "admin") {
     const editButton = target.closest("[data-cargo-edit]");
     if (editButton instanceof HTMLButtonElement) {
       fillCargoForm(JSON.parse(editButton.dataset.cargoEdit || "{}"));
+      openModal("admin-cargo-modal");
       return;
     }
     const deleteButton = target.closest("[data-cargo-delete]");
@@ -921,6 +998,7 @@ if (pageType === "admin") {
       fillAdminUserForm(user);
       await loadUsers();
       resetStatus(adminUserFormStatus, `Пользователь ${user.login} обновлён.`);
+      window.closeAdminUserModal();
     } catch (error) {
       resetStatus(adminUserFormStatus, error.message || "Не удалось сохранить изменения.");
     }
@@ -970,6 +1048,7 @@ if (pageType === "admin") {
       await loadShipments();
       await loadCargoes();
       resetStatus(adminShipmentFormStatus, `Заявка #${shipmentId} обновлена.`);
+      closeModal(document.getElementById("admin-shipment-modal"));
     } catch (error) {
       resetStatus(adminShipmentFormStatus, error.message || "Не удалось сохранить изменения.");
     }
@@ -1001,6 +1080,7 @@ if (pageType === "admin") {
       await loadCargoes();
       await loadShipments();
       resetStatus(adminCargoFormStatus, `Груз #${cargoId} обновлён.`);
+      closeModal(document.getElementById("admin-cargo-modal"));
     } catch (error) {
       resetStatus(adminCargoFormStatus, error.message || "Не удалось сохранить изменения.");
     }
@@ -1014,13 +1094,10 @@ if (pageType === "manager") {
   loadManagerCargoes();
   hydrateShipmentFormOptions(managerShipmentForm, managerShipmentFormStatus);
 
-  refreshManagerShipmentsButton?.addEventListener("click", loadManagerShipments);
-  refreshManagerVehiclesButton?.addEventListener("click", loadManagerVehicles);
-  refreshManagerCargoesButton?.addEventListener("click", loadManagerCargoes);
   managerShipmentFormReset?.addEventListener("click", resetManagerShipmentForm);
-  managerShipmentCreate?.addEventListener("click", async () => {
-    managerShipmentForm.elements.id.value = "";
-    await createManagerShipment();
+  managerShipmentCreate?.addEventListener("click", () => {
+    resetManagerShipmentForm();
+    openModal("manager-shipment-modal");
   });
 
   managerShipmentsList?.addEventListener("click", async (event) => {
@@ -1035,6 +1112,7 @@ if (pageType === "manager") {
       );
       if (shipment) {
         fillManagerShipmentForm(shipment);
+        openModal("manager-shipment-modal");
       }
       return;
     }
@@ -1122,7 +1200,6 @@ async function loadCustomerShipments() {
 
 if (pageType === "customer") {
   loadCustomerShipments();
-  refreshCustomerShipmentsButton?.addEventListener("click", loadCustomerShipments);
 }
 
 function updateCarrierStats(shipments) {
@@ -1159,6 +1236,7 @@ function fillCarrierVehicleForm(vehicle) {
     : "";
   resetStatus(carrierVehicleFormStatus, `Редактируется транспорт #${vehicle.id}.`);
 }
+window.fillCarrierVehicleForm = fillCarrierVehicleForm;
 
 function renderCarrierShipments(shipments) {
   if (!shipments.length) {
@@ -1231,7 +1309,7 @@ function renderCarrierVehicles(vehicles) {
         <span>${escapeHtml(vehicle.carrier ? vehicle.carrier.login : "-")}</span>
       </div>
       <div class="user-row__actions">
-        <button class="button button--secondary" type="button" data-carrier-vehicle-edit='${escapeHtml(JSON.stringify(vehicle))}'>Изменить</button>
+        <button class="button button--secondary" type="button" data-open-carrier-vehicle-modal="true" data-carrier-vehicle-edit='${escapeHtml(JSON.stringify(vehicle))}'>Изменить</button>
       </div>
     </article>
   `).join("");
@@ -1323,9 +1401,6 @@ if (pageType === "carrier") {
   loadCarrierVehicles();
   loadCarrierCargoes();
 
-  refreshCarrierShipmentsButton?.addEventListener("click", loadCarrierShipments);
-  refreshCarrierVehiclesButton?.addEventListener("click", loadCarrierVehicles);
-  refreshCarrierCargoesButton?.addEventListener("click", loadCarrierCargoes);
   carrierVehicleFormReset?.addEventListener("click", resetCarrierVehicleForm);
 
   carrierVehiclesList?.addEventListener("click", (event) => {
@@ -1336,6 +1411,7 @@ if (pageType === "carrier") {
     const editButton = target.closest("[data-carrier-vehicle-edit]");
     if (editButton instanceof HTMLButtonElement) {
       fillCarrierVehicleForm(JSON.parse(editButton.dataset.carrierVehicleEdit || "{}"));
+      openModal("carrier-vehicle-modal");
     }
   });
 
@@ -1370,6 +1446,7 @@ if (pageType === "carrier") {
           carrierVehicleFormStatus,
           vehicleId ? `Транспорт #${vehicleId} обновлён.` : `Транспорт #${vehicle.id} создан.`
       );
+      closeModal(document.getElementById("carrier-vehicle-modal"));
     } catch (error) {
       resetStatus(carrierVehicleFormStatus, error.message || "Не удалось сохранить изменения.");
     }
@@ -1377,5 +1454,6 @@ if (pageType === "carrier") {
 
   carrierVehicleCreate?.addEventListener("click", () => {
     resetCarrierVehicleForm();
+    openModal("carrier-vehicle-modal");
   });
 }

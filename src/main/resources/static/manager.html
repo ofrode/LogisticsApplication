@@ -25,16 +25,6 @@
     </header>
 
     <main class="page-main">
-      <section class="dashboard-hero dashboard-hero--manager">
-        <div class="container dashboard-hero__grid">
-          <div>
-            <p class="eyebrow">Manager dashboard</p>
-            <h1>Работа с заявками и маршрутами</h1>
-            <p>Менеджер управляет заявками и видит актуальный транспорт и грузы без доступа к пользователям.</p>
-          </div>
-          <div class="dashboard-badge">Operations</div>
-        </div>
-      </section>
 
       <section class="section">
         <div class="container admin-sections">
@@ -44,7 +34,7 @@
                 <h2>Заявки</h2>
                 <p class="panel-card__text">Создание, изменение и удаление отправлений.</p>
               </div>
-              <button class="button button--secondary" type="button" id="refresh-manager-shipments-button">Обновить</button>
+              <button class="button button--secondary" type="button" id="manager-shipment-create" data-modal-open="manager-shipment-modal">Создать заявку</button>
             </div>
             <div class="stats-grid stats-grid--compact">
               <article class="stat-card"><span>Всего заявок</span><strong data-manager-stat="total">0</strong></article>
@@ -57,82 +47,6 @@
                 <p class="form-status manager-shipments-status" role="status" aria-live="polite"></p>
                 <div class="user-table" id="manager-shipments-list"></div>
               </div>
-              <form class="form-card" id="manager-shipment-form">
-                <input name="id" type="hidden">
-                <label>
-                  Трек-номер
-                  <input name="trackingNumber" type="text" required maxlength="100">
-                </label>
-                <div class="form-grid">
-                  <label>
-                    Город отправления
-                    <input name="originCity" type="text" required maxlength="150">
-                  </label>
-                  <label>
-                    Город назначения
-                    <input name="destinationCity" type="text" required maxlength="150">
-                  </label>
-                </div>
-                <div class="form-grid">
-                  <label>
-                    Статус
-                    <select name="status" required>
-                      <option value="CREATED">CREATED</option>
-                      <option value="RECEIVED">RECEIVED</option>
-                      <option value="IN_TRANSIT">IN_TRANSIT</option>
-                      <option value="DELIVERED">DELIVERED</option>
-                      <option value="CANCELLED">CANCELLED</option>
-                    </select>
-                  </label>
-                  <label>
-                    Клиент
-                    <select name="customerId" size="5" required></select>
-                  </label>
-                </div>
-                <div class="form-grid">
-                  <label>
-                    Менеджер
-                    <select name="managerId" size="5" required></select>
-                  </label>
-                  <label>
-                    Транспорт
-                    <select name="vehicleIds" size="6" multiple required></select>
-                  </label>
-                </div>
-                <div class="form-grid">
-                  <label>
-                    Название груза
-                    <input name="cargoName" type="text" maxlength="255">
-                  </label>
-                  <label>
-                    Вес груза, кг
-                    <input name="cargoWeightKg" type="number" step="0.01" min="0.01" max="30000">
-                  </label>
-                </div>
-                <p class="panel-hint">
-                  Для новой заявки заполните данные груза. При редактировании существующей заявки текущие грузы сохраняются как есть.
-                </p>
-                <div class="form-grid">
-                  <label>
-                    Создано
-                    <input name="orderCreatedAt" type="datetime-local" required>
-                  </label>
-                  <label>
-                    Принято
-                    <input name="orderReceivedAt" type="datetime-local" required>
-                  </label>
-                </div>
-                <label>
-                  Прибытие
-                  <input name="arrivalAt" type="datetime-local" required>
-                </label>
-                <div class="admin-form-actions">
-                  <button class="button button--primary" type="submit">Сохранить</button>
-                  <button class="button button--secondary" type="button" id="manager-shipment-create">Создать новую</button>
-                  <button class="button button--secondary" type="button" id="manager-shipment-form-reset">Сбросить</button>
-                </div>
-                <p class="form-status manager-shipment-form-status" role="status" aria-live="polite"></p>
-              </form>
             </div>
           </section>
 
@@ -142,7 +56,6 @@
                 <h2>Транспортные средства</h2>
                 <p class="panel-card__text">Просмотр транспорта.</p>
               </div>
-              <button class="button button--secondary" type="button" id="refresh-manager-vehicles-button">Обновить</button>
             </div>
             <p class="form-status manager-vehicles-status" role="status" aria-live="polite"></p>
             <div class="user-table" id="manager-vehicles-list"></div>
@@ -154,7 +67,6 @@
                 <h2>Грузы</h2>
                 <p class="panel-card__text">Просмотр грузов и их привязки к заявкам.</p>
               </div>
-              <button class="button button--secondary" type="button" id="refresh-manager-cargoes-button">Обновить</button>
             </div>
             <p class="form-status manager-cargoes-status" role="status" aria-live="polite"></p>
             <div class="user-table" id="manager-cargoes-list"></div>
@@ -162,8 +74,110 @@
         </div>
       </section>
     </main>
+
+    <div class="modal-shell" id="manager-shipment-modal" hidden>
+      <div class="modal-backdrop" data-modal-close></div>
+      <section class="modal-card modal-card--wide">
+        <div class="panel-card__header panel-card__header--split">
+          <h2>Заявка</h2>
+          <button class="button button--secondary" type="button" data-modal-close>Закрыть</button>
+        </div>
+        <form class="form-card shipment-form" id="manager-shipment-form">
+          <input name="id" type="hidden">
+          <label><span>Трек-номер</span><input name="trackingNumber" type="text" required maxlength="100"></label>
+          <div class="form-grid">
+            <label><span>Город отправления</span><input name="originCity" type="text" required maxlength="150"></label>
+            <label><span>Город назначения</span><input name="destinationCity" type="text" required maxlength="150"></label>
+          </div>
+          <div class="form-grid">
+            <label>
+              <span>Статус</span>
+              <select name="status" required>
+                <option value="CREATED">CREATED</option>
+                <option value="RECEIVED">RECEIVED</option>
+                <option value="IN_TRANSIT">IN_TRANSIT</option>
+                <option value="DELIVERED">DELIVERED</option>
+                <option value="CANCELLED">CANCELLED</option>
+              </select>
+            </label>
+            <label><span>Клиент</span><select name="customerId" size="5" required></select></label>
+          </div>
+          <div class="form-grid">
+            <label><span>Менеджер</span><select name="managerId" size="5" required></select></label>
+            <label><span>Транспорт</span><select name="vehicleIds" size="6" multiple required></select></label>
+          </div>
+          <div class="form-grid">
+            <label><span>Название груза</span><input name="cargoName" type="text" maxlength="255"></label>
+            <label><span>Вес груза, кг</span><input name="cargoWeightKg" type="number" step="0.01" min="0.01" max="30000"></label>
+          </div>
+          <p class="panel-hint">Для новой заявки заполните данные груза. При редактировании существующей заявки текущие грузы сохраняются как есть.</p>
+          <div class="form-grid">
+            <label><span>Создано</span><input name="orderCreatedAt" type="datetime-local" required></label>
+            <label><span>Принято</span><input name="orderReceivedAt" type="datetime-local" required></label>
+          </div>
+          <label><span>Прибытие</span><input name="arrivalAt" type="datetime-local" required></label>
+          <div class="admin-form-actions">
+            <button class="button button--primary" type="submit">Сохранить</button>
+            <button class="button button--secondary" type="button" id="manager-shipment-form-reset">Сбросить</button>
+          </div>
+          <p class="form-status manager-shipment-form-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </div>
   </div>
 
   <script src="/script.js"></script>
+  <script>
+    (function () {
+      const shipmentsList = document.getElementById("manager-shipments-list");
+      const modal = document.getElementById("manager-shipment-modal");
+      const createButton = document.getElementById("manager-shipment-create");
+
+      if (!shipmentsList || !modal) {
+        return;
+      }
+
+      function openManagerShipmentModal() {
+        modal.hidden = false;
+        document.body.classList.add("modal-open");
+      }
+
+      function closeManagerShipmentModal() {
+        modal.hidden = true;
+        document.body.classList.remove("modal-open");
+      }
+
+      shipmentsList.addEventListener("click", function (event) {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+          return;
+        }
+        const button = target.closest("[data-open-manager-shipment-modal='true'], [data-manager-shipment-edit]");
+        if (!button) {
+          return;
+        }
+        const shipmentId = button.getAttribute("data-manager-shipment-edit");
+        if (!shipmentId || !window.cachedShipments || typeof window.fillManagerShipmentForm !== "function") {
+          return;
+        }
+        const shipment = window.cachedShipments.find(function (item) {
+          return String(item.id) === shipmentId;
+        });
+        if (!shipment) {
+          return;
+        }
+        window.fillManagerShipmentForm(shipment);
+        openManagerShipmentModal();
+      });
+
+      if (createButton) {
+        createButton.addEventListener("click", function () {
+          openManagerShipmentModal();
+        });
+      }
+
+      window.closeManagerShipmentModal = closeManagerShipmentModal;
+    })();
+  </script>
 </body>
 </html>

@@ -29,86 +29,94 @@
       <section class="section auth-hero">
         <div class="container auth-layout">
           <div class="auth-intro">
-            <p class="eyebrow">Authorization</p>
+            <p class="eyebrow">Доступ</p>
             <h1>Вход и создание пользователя</h1>
             <p>
               Здесь собраны обе точки входа: авторизация пользователя и регистрация новой учётной записи
               для вашей логистической платформы.
             </p>
-            <div class="auth-shortcuts">
-              <a class="chip-link" href="/admin.html">Admin dashboard</a>
-              <a class="chip-link" href="/manager.html">Manager dashboard</a>
-              <a class="chip-link" href="/customer.html">Customer dashboard</a>
-              <a class="chip-link" href="/carrier.html">Carrier dashboard</a>
+            <div class="hero__actions">
+              <button class="button button--primary" type="button" data-modal-open="login-modal">Войти</button>
+              <button class="button button--secondary" type="button" data-modal-open="register-modal">Регистрация</button>
             </div>
-          </div>
-
-          <div class="auth-panels">
-            <section class="panel-card">
-              <div class="panel-card__header">
-                <p class="eyebrow">Sign in</p>
-                <h2>Авторизация</h2>
-              </div>
-              <form class="form-card" id="login-form">
-                <label>
-                  Логин
-                  <input name="login" type="text" placeholder="ivan_admin" required maxlength="100">
-                </label>
-                <label>
-                  Пароль
-                  <input name="password" type="password" placeholder="Введите пароль" required minlength="8" maxlength="255">
-                </label>
-                <button class="button button--primary" type="submit">Войти</button>
-                <p class="form-status login-form-status" role="status" aria-live="polite"></p>
-              </form>
-            </section>
-
-            <section class="panel-card">
-              <div class="panel-card__header">
-                <p class="eyebrow">Create account</p>
-                <h2>Регистрация</h2>
-              </div>
-              <form class="form-card" id="register-form">
-                <div class="form-grid">
-                  <label>
-                    Имя
-                    <input name="firstName" type="text" placeholder="Анна" required maxlength="100">
-                  </label>
-                  <label>
-                    Фамилия
-                    <input name="lastName" type="text" placeholder="Иванова" required maxlength="100">
-                  </label>
-                </div>
-                <label>
-                  Email
-                  <input name="email" type="email" placeholder="anna@example.com" required maxlength="255">
-                </label>
-                <div class="form-grid">
-                  <label>
-                    Логин
-                    <input name="login" type="text" placeholder="anna_customer" required maxlength="100">
-                  </label>
-                  <label>
-                    Роль
-                    <select name="role" required>
-                      <option value="CUSTOMER">CUSTOMER</option>
-                      <option value="MANAGER">MANAGER</option>
-                      <option value="CARRIER">CARRIER</option>
-                    </select>
-                  </label>
-                </div>
-                <label>
-                  Пароль
-                  <input name="password" type="password" placeholder="Минимум 8 символов" required minlength="8" maxlength="255">
-                </label>
-                <button class="button button--primary" type="submit">Создать пользователя</button>
-                <p class="form-status register-form-status" role="status" aria-live="polite"></p>
-              </form>
-            </section>
           </div>
         </div>
       </section>
     </main>
+
+    <div class="modal-shell" id="login-modal" hidden>
+      <div class="modal-backdrop" data-modal-close></div>
+      <section class="modal-card">
+        <div class="panel-card__header panel-card__header--split">
+          <div>
+            <p class="eyebrow">Вход</p>
+            <h2>Авторизация</h2>
+          </div>
+          <button class="button button--secondary" type="button" data-modal-close>Закрыть</button>
+        </div>
+        <form class="form-card" id="login-form">
+          <label>
+            Логин
+            <input name="login" type="text" placeholder="ivan_admin" required maxlength="100">
+          </label>
+          <label>
+            Пароль
+            <input name="password" type="password" placeholder="Введите пароль" required minlength="8" maxlength="255">
+          </label>
+          <button class="button button--primary" type="submit">Войти</button>
+          <p class="form-status login-form-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </div>
+
+    <div class="modal-shell" id="register-modal" hidden>
+      <div class="modal-backdrop" data-modal-close></div>
+      <section class="modal-card">
+        <div class="panel-card__header panel-card__header--split">
+          <div>
+            <p class="eyebrow">Регистрация</p>
+            <h2>Регистрация</h2>
+          </div>
+          <button class="button button--secondary" type="button" data-modal-close>Закрыть</button>
+        </div>
+        <form class="form-card" id="register-form">
+          <div class="form-grid">
+            <label>
+              Имя
+              <input name="firstName" type="text" placeholder="Анна" required maxlength="100">
+            </label>
+            <label>
+              Фамилия
+              <input name="lastName" type="text" placeholder="Иванова" required maxlength="100">
+            </label>
+          </div>
+          <label>
+            Email
+            <input name="email" type="email" placeholder="anna@example.com" required maxlength="255">
+          </label>
+          <div class="form-grid">
+            <label>
+              Логин
+              <input name="login" type="text" placeholder="anna_customer" required maxlength="100">
+            </label>
+            <label>
+              Роль
+              <select name="role" required>
+                <option value="CUSTOMER">CUSTOMER</option>
+                <option value="MANAGER">MANAGER</option>
+                <option value="CARRIER">CARRIER</option>
+              </select>
+            </label>
+          </div>
+          <label>
+            Пароль
+            <input name="password" type="password" placeholder="Минимум 8 символов" required minlength="8" maxlength="255">
+          </label>
+          <button class="button button--primary" type="submit">Создать пользователя</button>
+          <p class="form-status register-form-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </div>
 
   </div>
 
