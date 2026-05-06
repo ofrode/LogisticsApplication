@@ -5,6 +5,8 @@ REST API для управления логистическими заказам
 Проект покрывает:
 
 - CRUD для пользователей, транспорта и заказов;
+- авторизацию (`/api/auth/login`) и публичную регистрацию (`/api/auth/register`);
+- веб-интерфейс с ролями `Admin`, `Manager`, `Customer`, `Carrier`;
 - bulk-операцию массового создания `Shipment`;
 - асинхронную bulk-операцию через `@Async` и `CompletableFuture` с `taskId` и проверкой статуса;
 - потокобезопасные счётчики на `AtomicInteger` и `synchronized`;
@@ -69,6 +71,8 @@ flowchart LR
 
     subgraph api["API layer"]
         appUserController["AppUserController"]
+        authController["AuthController"]
+        cargoAdminController["CargoAdminController"]
         vehicleController["VehicleController"]
         shipmentController["ShipmentController
 CRUD / bulk / search / demo"]
@@ -78,6 +82,7 @@ CRUD / bulk / search / demo"]
 
     subgraph service["Service layer"]
         appUserService["AppUserServiceImpl"]
+        cargoAdminService["CargoAdminServiceImpl"]
         vehicleService["VehicleServiceImpl"]
         shipmentService["ShipmentServiceImpl
 @Transactional / Stream API / Optional"]
@@ -125,12 +130,13 @@ JaCoCo -> SonarQube"]
 
 Коротко по слоям:
 
-- `controller` принимает HTTP-запросы, валидирует входные DTO и делегирует работу сервисам;
-- `service` содержит бизнес-логику: CRUD, bulk-операции, асинхронные задачи, race-condition demo, транзакции, поиск, кэш и проверки;
+- `controller` принимает HTTP-запросы, валидирует DTO и делегирует работу сервисам;
+- `service` содержит бизнес-логику: CRUD, авторизацию, bulk-операции, асинхронные задачи, транзакции, поиск, кэш и проверки;
 - `repository` работает с JPA и БД;
 - `mapper` преобразует entity в response DTO;
 - `cache` хранит результаты поиска `Shipment`;
 - `aspect` логирует время выполнения сервисных методов;
+- `static` содержит публичную страницу компании и кабинеты ролей;
 - `test` проверяет приложение на уровне unit и integration;
 - `.github/workflows` запускает сборку, тесты и отправку coverage в SonarQube.
 
@@ -173,7 +179,9 @@ logisticsapplication/
     │   │           │   └── OpenApiConfig.java
     │   │           ├── controller/
     │   │           │   ├── AppUserController.java
+    │   │           │   ├── AuthController.java
     │   │           │   ├── ConcurrencyController.java
+    │   │           │   ├── CargoAdminController.java
     │   │           │   ├── HealthController.java
     │   │           │   ├── ShipmentAsyncController.java
     │   │           │   ├── ShipmentController.java
@@ -181,6 +189,9 @@ logisticsapplication/
     │   │           ├── dto/
     │   │           │   ├── request/
     │   │           │   │   ├── AppUserRequest.java
+    │   │           │   │   ├── AuthLoginRequest.java
+    │   │           │   │   ├── AuthRegisterRequest.java
+    │   │           │   │   ├── CargoAdminRequest.java
     │   │           │   │   ├── CargoRequest.java
     │   │           │   │   ├── ShipmentRequest.java
     │   │           │   │   ├── ShipmentScheduleRequest.java
@@ -190,6 +201,8 @@ logisticsapplication/
     │   │           │       ├── AppUserResponse.java
     │   │           │       ├── AsyncShipmentTaskStatusResponse.java
     │   │           │       ├── AsyncTaskSubmittedResponse.java
+    │   │           │       ├── AuthLoginResponse.java
+    │   │           │       ├── CargoAdminResponse.java
     │   │           │       ├── CargoResponse.java
     │   │           │       ├── CounterSnapshotResponse.java
     │   │           │       ├── PageResponse.java
@@ -225,6 +238,7 @@ logisticsapplication/
     │   │           │   └── VehicleRepository.java
     │   │           ├── service/
     │   │           │   ├── AppUserService.java
+    │   │           │   ├── CargoAdminService.java
     │   │           │   ├── ConcurrencyDemoService.java
     │   │           │   ├── ShipmentAsyncService.java
     │   │           │   ├── ShipmentService.java
@@ -233,6 +247,7 @@ logisticsapplication/
     │   │           │       ├── AsyncShipmentTaskRegistry.java
     │   │           │       ├── AppUserServiceImpl.java
     │   │           │       ├── ConcurrencyDemoServiceImpl.java
+    │   │           │       ├── CargoAdminServiceImpl.java
     │   │           │       ├── ShipmentAsyncServiceImpl.java
     │   │           │       ├── ShipmentAsyncWorker.java
     │   │           │       ├── ShipmentServiceImpl.java
@@ -241,7 +256,19 @@ logisticsapplication/
     │       ├── application.properties
     │       ├── application-postgres.properties
     │       ├── logback-spring.xml
+    │       ├── static/
+    │       │   ├── admin.html
+    │       │   ├── auth.html
+    │       │   ├── carrier.html
+    │       │   ├── customer.html
+    │       │   ├── index.html
+    │       │   ├── manager.html
+    │       │   ├── script.js
+    │       │   └── styles.css
     │       └── sql/
+    │           ├── add_login_and_password_to_app_users_postgres.sql
+    │           ├── cleanup_all_postgres.sql
+    │           ├── cleanup_keep_sample_data_postgres.sql
     │           ├── fix_app_users_table_postgres.sql
     │           └── migrate_roles_and_statuses_to_lookup_tables.sql
     └── test/
