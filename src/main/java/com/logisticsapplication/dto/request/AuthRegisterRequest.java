@@ -15,30 +15,28 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Запрос на создание/обновление пользователя")
-public class AppUserRequest {
-
-    private static final String DEFAULT_PASSWORD = "password123";
+@Schema(description = "Публичная регистрация пользователя")
+public class AuthRegisterRequest {
 
     @NotBlank
     @Size(max = 100)
-    @Schema(description = "Имя", example = "Иван")
+    @Schema(description = "Имя", example = "Анна")
     private String firstName;
 
     @NotBlank
     @Size(max = 100)
-    @Schema(description = "Фамилия", example = "Иванов")
+    @Schema(description = "Фамилия", example = "Иванова")
     private String lastName;
 
     @Email
     @NotBlank
     @Size(max = 255)
-    @Schema(description = "Email", example = "ivan.ivanov@example.com")
+    @Schema(description = "Email", example = "anna@example.com")
     private String email;
 
     @NotBlank
     @Size(max = 100)
-    @Schema(description = "Логин пользователя", example = "ivan_admin")
+    @Schema(description = "Логин пользователя", example = "anna_customer")
     private String login;
 
     @NotBlank
@@ -47,15 +45,6 @@ public class AppUserRequest {
     private String password;
 
     @NotNull
-    @Schema(description = "Роль пользователя", example = "MANAGER")
+    @Schema(description = "Роль пользователя", example = "CUSTOMER")
     private UserRole role;
-
-    public AppUserRequest(String firstName, String lastName, String email, UserRole role) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.login = email;
-        this.password = DEFAULT_PASSWORD;
-        this.role = role;
-    }
 }

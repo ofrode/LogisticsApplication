@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Logistics Application - доступ</title>
+  <link rel="preconnect" href="https://images.unsplash.com">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body data-page="auth">
+  <div class="page-shell">
+    <header class="site-header">
+      <div class="container header-row">
+        <a class="brand" href="/">
+          <span class="brand__mark">LA</span>
+          <span class="brand__text">
+            <strong>Logistics Application</strong>
+            <small>User access</small>
+          </span>
+        </a>
+        <nav class="nav-menu nav-menu--static" aria-label="Навигация">
+          <a href="/">Главная</a>
+          <a href="/auth.html">Доступ</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="page-main">
+      <section class="section auth-hero">
+        <div class="container auth-layout">
+          <div class="auth-intro">
+            <p class="eyebrow">Authorization</p>
+            <h1>Вход и создание пользователя</h1>
+            <p>
+              Здесь собраны обе точки входа: авторизация пользователя и регистрация новой учётной записи
+              для вашей логистической платформы.
+            </p>
+            <div class="auth-shortcuts">
+              <a class="chip-link" href="/admin.html">Admin dashboard</a>
+              <a class="chip-link" href="/manager.html">Manager dashboard</a>
+              <a class="chip-link" href="/customer.html">Customer dashboard</a>
+              <a class="chip-link" href="/carrier.html">Carrier dashboard</a>
+            </div>
+          </div>
+
+          <div class="auth-panels">
+            <section class="panel-card">
+              <div class="panel-card__header">
+                <p class="eyebrow">Sign in</p>
+                <h2>Авторизация</h2>
+              </div>
+              <form class="form-card" id="login-form">
+                <label>
+                  Логин
+                  <input name="login" type="text" placeholder="ivan_admin" required maxlength="100">
+                </label>
+                <label>
+                  Пароль
+                  <input name="password" type="password" placeholder="Введите пароль" required minlength="8" maxlength="255">
+                </label>
+                <button class="button button--primary" type="submit">Войти</button>
+                <p class="form-status login-form-status" role="status" aria-live="polite"></p>
+              </form>
+            </section>
+
+            <section class="panel-card">
+              <div class="panel-card__header">
+                <p class="eyebrow">Create account</p>
+                <h2>Регистрация</h2>
+              </div>
+              <form class="form-card" id="register-form">
+                <div class="form-grid">
+                  <label>
+                    Имя
+                    <input name="firstName" type="text" placeholder="Анна" required maxlength="100">
+                  </label>
+                  <label>
+                    Фамилия
+                    <input name="lastName" type="text" placeholder="Иванова" required maxlength="100">
+                  </label>
+                </div>
+                <label>
+                  Email
+                  <input name="email" type="email" placeholder="anna@example.com" required maxlength="255">
+                </label>
+                <div class="form-grid">
+                  <label>
+                    Логин
+                    <input name="login" type="text" placeholder="anna_customer" required maxlength="100">
+                  </label>
+                  <label>
+                    Роль
+                    <select name="role" required>
+                      <option value="CUSTOMER">CUSTOMER</option>
+                      <option value="MANAGER">MANAGER</option>
+                      <option value="CARRIER">CARRIER</option>
+                    </select>
+                  </label>
+                </div>
+                <label>
+                  Пароль
+                  <input name="password" type="password" placeholder="Минимум 8 символов" required minlength="8" maxlength="255">
+                </label>
+                <button class="button button--primary" type="submit">Создать пользователя</button>
+                <p class="form-status register-form-status" role="status" aria-live="polite"></p>
+              </form>
+            </section>
+          </div>
+        </div>
+      </section>
+    </main>
+
+  </div>
+
+  <script src="/script.js"></script>
+</body>
+</html>

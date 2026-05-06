@@ -2,9 +2,13 @@ package com.logisticsapplication.service.impl;
 
 import com.logisticsapplication.cache.ShipmentSearchIndex;
 import com.logisticsapplication.dto.request.AppUserRequest;
+import com.logisticsapplication.dto.request.AuthLoginRequest;
+import com.logisticsapplication.dto.request.AuthRegisterRequest;
 import com.logisticsapplication.dto.response.AppUserResponse;
+import com.logisticsapplication.dto.response.AuthLoginResponse;
 import com.logisticsapplication.mapper.AppUserMapper;
 import com.logisticsapplication.model.AppUser;
+import com.logisticsapplication.model.UserRole;
 import com.logisticsapplication.model.UserRoleLookup;
 import com.logisticsapplication.repository.AppUserRepository;
 import com.logisticsapplication.repository.UserRoleLookupRepository;
@@ -14,12 +18,16 @@ import java.util.Locale;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
 public class AppUserServiceImpl implements AppUserService {
+
+    private static final PasswordEncoder PASSWORD_ENCODER = new BCryptPasswordEncoder();
 
     private final AppUserRepository appUserRepository;
     private final UserRoleLookupRepository userRoleLookupRepository;
@@ -28,18 +36,74 @@ public class AppUserServiceImpl implements AppUserService {
     @Override
     public AppUserResponse create(AppUserRequest request) {
         ensureEmailAvailable(request.getEmail(), null);
+        ensureLoginAvailable(request.getLogin(), null);
         AppUser user = new AppUser();
-        apply(user, request);
+        apply(
+                user,
+                request.getFirstName(),
+                request.getLastName(),
+                request.getEmail(),
+                request.getLogin(),
+                request.getPassword(),
+                request.getRole()
+        );
         AppUserResponse response = AppUserMapper.toResponse(appUserRepository.save(user));
         shipmentSearchIndex.invalidateAll();
         return response;
     }
 
     @Override
+    public AppUserResponse register(AuthRegisterRequest request) {
+        validatePublicRole(request.getRole());
+        ensureEmailAvailable(request.getEmail(), null);
+        ensureLoginAvailable(request.getLogin(), null);
+        AppUser user = new AppUser();
+        apply(
+                user,
+                request.getFirstName(),
+                request.getLastName(),
+                request.getEmail(),
+                request.getLogin(),
+                request.getPassword(),
+                request.getRole()
+        );
+        AppUserResponse response = AppUserMapper.toResponse(appUserRepository.save(user));
+        shipmentSearchIndex.invalidateAll();
+        return response;
+    }
+
+    @Override
+    public AuthLoginResponse authenticate(AuthLoginRequest request) {
+        String normalizedLogin = normalizeLogin(request.getLogin());
+        AppUser user = appUserRepository.findByLoginIgnoreCase(normalizedLogin)
+                .orElseThrow(
+                        () -> new ResponseStatusException(
+                                HttpStatus.UNAUTHORIZED,
+                                "Invalid login or password"
+                        )
+                );
+        if (!PASSWORD_ENCODER.matches(request.getPassword(), user.getPasswordHash())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid login or password");
+        }
+        AppUserResponse userResponse = AppUserMapper.toResponse(user);
+        UserRole role = userResponse.getRole();
+        return new AuthLoginResponse(userResponse, role, resolveRedirectUrl(role));
+    }
+
+    @Override
     public AppUserResponse update(Long id, AppUserRequest request) {
         AppUser user = getEntity(id);
         ensureEmailAvailable(request.getEmail(), id);
-        apply(user, request);
+        ensureLoginAvailable(request.getLogin(), id);
+        apply(
+                user,
+                request.getFirstName(),
+                request.getLastName(),
+                request.getEmail(),
+                request.getLogin(),
+                request.getPassword(),
+                request.getRole()
+        );
         AppUserResponse response = AppUserMapper.toResponse(appUserRepository.save(user));
         shipmentSearchIndex.invalidateAll();
         return response;
@@ -72,17 +136,28 @@ public class AppUserServiceImpl implements AppUserService {
         );
     }
 
-    private void apply(AppUser user, AppUserRequest request) {
-        AppUserMapper.updateEntity(user, request);
-        user.setEmail(normalizeEmail(request.getEmail()));
-        UserRoleLookup role = userRoleLookupRepository.findByCode(request.getRole().name())
+    private void apply(
+            AppUser user,
+            String firstName,
+            String lastName,
+            String email,
+            String login,
+            String password,
+            UserRole role
+    ) {
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setEmail(normalizeEmail(email));
+        user.setLogin(normalizeLogin(login));
+        user.setPasswordHash(PASSWORD_ENCODER.encode(password));
+        UserRoleLookup roleLookup = userRoleLookupRepository.findByCode(role.name())
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.INTERNAL_SERVER_ERROR,
-                                "Role lookup not found: " + request.getRole().name()
+                                "Role lookup not found: " + role.name()
                         )
                 );
-        user.setRole(role);
+        user.setRole(roleLookup);
     }
 
     private void ensureEmailAvailable(String email, Long currentUserId) {
@@ -97,7 +172,41 @@ public class AppUserServiceImpl implements AppUserService {
                 });
     }
 
+    private void ensureLoginAvailable(String login, Long currentUserId) {
+        String normalizedLogin = normalizeLogin(login);
+        appUserRepository.findByLoginIgnoreCase(normalizedLogin)
+                .filter(existingUser -> !Objects.equals(existingUser.getId(), currentUserId))
+                .ifPresent(existingUser -> {
+                    throw new ResponseStatusException(
+                            HttpStatus.CONFLICT,
+                            "User login already exists: " + normalizedLogin
+                    );
+                });
+    }
+
     private String normalizeEmail(String email) {
         return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizeLogin(String login) {
+        return login.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private void validatePublicRole(UserRole role) {
+        if (role == UserRole.ADMIN) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Public registration does not allow ADMIN role"
+            );
+        }
+    }
+
+    private String resolveRedirectUrl(UserRole role) {
+        return switch (role) {
+            case ADMIN -> "/admin.html";
+            case MANAGER -> "/manager.html";
+            case CUSTOMER -> "/customer.html";
+            case CARRIER -> "/carrier.html";
+        };
     }
 }

@@ -38,6 +38,12 @@ public class AppUser {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = false, unique = true)
+    private String login;
+
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
     private UserRoleLookup role;
@@ -50,4 +56,26 @@ public class AppUser {
 
     @OneToMany(mappedBy = "assignedCarrier", fetch = FetchType.LAZY)
     private List<Vehicle> vehicles = new ArrayList<>();
+
+    public AppUser(
+            Long id,
+            String firstName,
+            String lastName,
+            String email,
+            UserRoleLookup role,
+            List<Shipment> customerShipments,
+            List<Shipment> managedShipments,
+            List<Vehicle> vehicles
+    ) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.login = email;
+        this.passwordHash = "";
+        this.role = role;
+        this.customerShipments = customerShipments;
+        this.managedShipments = managedShipments;
+        this.vehicles = vehicles;
+    }
 }

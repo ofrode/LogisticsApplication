@@ -59,7 +59,7 @@
         <boolProp name="CookieManager.controlledByThreadGroup">false</boolProp>
       </CookieManager>
       <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="GET Health">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="GET Health" enabled="true">
         <intProp name="ThreadGroup.num_threads">600</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -82,7 +82,7 @@
         </HTTPSamplerProxy>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="GET Users">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="GET Users" enabled="true">
         <intProp name="ThreadGroup.num_threads">600</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -105,7 +105,7 @@
         </HTTPSamplerProxy>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="GET User By Id">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="GET User By Id" enabled="true">
         <intProp name="ThreadGroup.num_threads">600</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -128,7 +128,7 @@
         </HTTPSamplerProxy>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="GET Vehicles">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="GET Vehicles" enabled="true">
         <intProp name="ThreadGroup.num_threads">600</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -151,7 +151,7 @@
         </HTTPSamplerProxy>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="GET Vehicle By Id">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="GET Vehicle By Id" enabled="true">
         <intProp name="ThreadGroup.num_threads">600</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -174,7 +174,7 @@
         </HTTPSamplerProxy>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="GET Shipments Optimized">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="GET Shipments Optimized" enabled="true">
         <intProp name="ThreadGroup.num_threads">600</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -212,7 +212,7 @@
         </HTTPSamplerProxy>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="GET Shipment Search JPQL">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="GET Shipment Search JPQL" enabled="true">
         <intProp name="ThreadGroup.num_threads">600</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -278,7 +278,7 @@
         </HTTPSamplerProxy>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="GET Shipment Search Native">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="GET Shipment Search Native" enabled="true">
         <intProp name="ThreadGroup.num_threads">600</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -344,7 +344,7 @@
         </HTTPSamplerProxy>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="GET Race Condition Demo">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="GET Race Condition Demo" enabled="true">
         <intProp name="ThreadGroup.num_threads">600</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -382,7 +382,7 @@
         </HTTPSamplerProxy>
         <hashTree/>
       </hashTree>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
         <boolProp name="ResultCollector.error_logging">true</boolProp>
         <objProp>
           <name>saveConfig</name>

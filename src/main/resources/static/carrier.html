@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Carrier - Logistics Application</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body data-page="carrier">
+  <div class="page-shell">
+    <header class="site-header">
+      <div class="container header-row">
+        <a class="brand" href="/">
+          <span class="brand__mark">LA</span>
+          <span class="brand__text">
+            <strong>Carrier</strong>
+            <small>Transport flow</small>
+          </span>
+        </a>
+        <nav class="nav-menu nav-menu--static" aria-label="Навигация">
+          <a href="/">Главная</a>
+          <a href="/auth.html">Доступ</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="page-main">
+      <section class="dashboard-hero dashboard-hero--carrier">
+        <div class="container dashboard-hero__grid">
+          <div>
+            <p class="eyebrow">Carrier dashboard</p>
+            <h1>Мои рейсы и транспорт</h1>
+            <p>Перевозчик видит только свои заявки, свои транспортные средства и грузы по закреплённым отправлениям.</p>
+          </div>
+          <div class="dashboard-badge">Transport</div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container admin-sections">
+          <section class="panel-card admin-section">
+            <div class="panel-card__header panel-card__header--split">
+              <div>
+                <h2>Мои заявки</h2>
+                <p class="panel-card__text">Только отправления, в которых участвует ваш транспорт.</p>
+              </div>
+              <button class="button button--secondary" type="button" id="refresh-carrier-shipments-button">Обновить</button>
+            </div>
+            <div class="stats-grid stats-grid--compact">
+              <article class="stat-card"><span>Всего заявок</span><strong data-carrier-stat="total">0</strong></article>
+              <article class="stat-card"><span>Создано</span><strong data-carrier-stat="created">0</strong></article>
+              <article class="stat-card"><span>В пути</span><strong data-carrier-stat="transit">0</strong></article>
+              <article class="stat-card"><span>Доставлено</span><strong data-carrier-stat="delivered">0</strong></article>
+            </div>
+            <p class="form-status carrier-shipments-status" role="status" aria-live="polite"></p>
+            <div class="user-table" id="carrier-shipments-list"></div>
+          </section>
+
+          <section class="panel-card admin-section">
+            <div class="panel-card__header panel-card__header--split">
+              <div>
+                <h2>Мой транспорт</h2>
+                <p class="panel-card__text">Просмотр и изменение закреплённых транспортных средств.</p>
+              </div>
+              <button class="button button--secondary" type="button" id="refresh-carrier-vehicles-button">Обновить</button>
+            </div>
+            <div class="dashboard-grid">
+              <div>
+                <p class="form-status carrier-vehicles-status" role="status" aria-live="polite"></p>
+                <div class="user-table" id="carrier-vehicles-list"></div>
+              </div>
+              <form class="form-card" id="carrier-vehicle-form">
+                <input name="id" type="hidden">
+                <input name="carrierId" type="hidden">
+                <label>
+                  Регистрационный номер
+                  <input name="registrationNumber" type="text" required maxlength="30">
+                </label>
+                <div class="form-grid">
+                  <label>
+                    Грузоподъёмность, кг
+                    <input name="capacityKg" type="number" step="0.01" min="0.01" required>
+                  </label>
+                  <label>
+                    Перевозчик
+                    <input name="carrierDisplay" type="text" readonly>
+                  </label>
+                </div>
+                <div class="admin-form-actions">
+                  <button class="button button--primary" type="submit">Сохранить</button>
+                  <button class="button button--secondary" type="button" id="carrier-vehicle-create">Создать новое</button>
+                  <button class="button button--secondary" type="button" id="carrier-vehicle-form-reset">Сбросить</button>
+                </div>
+                <p class="form-status carrier-vehicle-form-status" role="status" aria-live="polite"></p>
+              </form>
+            </div>
+          </section>
+
+          <section class="panel-card admin-section">
+            <div class="panel-card__header panel-card__header--split">
+              <div>
+                <h2>Грузы</h2>
+                <p class="panel-card__text">Просмотр грузов по вашим заявкам.</p>
+              </div>
+              <button class="button button--secondary" type="button" id="refresh-carrier-cargoes-button">Обновить</button>
+            </div>
+            <p class="form-status carrier-cargoes-status" role="status" aria-live="polite"></p>
+            <div class="user-table" id="carrier-cargoes-list"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/script.js"></script>
+</body>
+</html>

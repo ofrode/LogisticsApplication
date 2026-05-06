@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin - Logistics Application</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body data-page="admin">
+  <div class="page-shell">
+    <header class="site-header">
+      <div class="container header-row">
+        <a class="brand" href="/">
+          <span class="brand__mark">LA</span>
+          <span class="brand__text">
+            <strong>Admin</strong>
+            <small>System control</small>
+          </span>
+        </a>
+        <nav class="nav-menu nav-menu--static" aria-label="Навигация">
+          <a href="/">Главная</a>
+          <a href="/auth.html">Доступ</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="page-main">
+      <section class="dashboard-hero dashboard-hero--admin">
+        <div class="container dashboard-hero__grid">
+          <div>
+            <p class="eyebrow">Admin dashboard</p>
+            <h1>Операционное управление системой</h1>
+            <p>Администратор может управлять пользователями, заявками, транспортом и грузами из одного кабинета.</p>
+          </div>
+          <div class="dashboard-badge">Full access</div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container admin-sections">
+          <section class="panel-card admin-section">
+            <div class="panel-card__header panel-card__header--split">
+              <div>
+                <h2>Пользователи</h2>
+                <p class="panel-card__text">Просмотр, редактирование и удаление пользователей.</p>
+              </div>
+              <button class="button button--secondary" type="button" id="refresh-users-button">Обновить</button>
+            </div>
+            <div class="stats-grid stats-grid--compact">
+              <article class="stat-card"><span>Всего пользователей</span><strong data-user-stat="total">0</strong></article>
+              <article class="stat-card"><span>Администраторы</span><strong data-user-stat="admins">0</strong></article>
+              <article class="stat-card"><span>Менеджеры</span><strong data-user-stat="managers">0</strong></article>
+              <article class="stat-card"><span>Клиенты и перевозчики</span><strong data-user-stat="others">0</strong></article>
+            </div>
+            <div class="dashboard-grid">
+              <div>
+                <p class="form-status admin-users-status" role="status" aria-live="polite"></p>
+                <div class="user-table" id="admin-users-list"></div>
+              </div>
+              <form class="form-card" id="admin-user-form">
+                <input name="id" type="hidden">
+                <div class="form-grid">
+                  <label>
+                    Имя
+                    <input name="firstName" type="text" required maxlength="100">
+                  </label>
+                  <label>
+                    Фамилия
+                    <input name="lastName" type="text" required maxlength="100">
+                  </label>
+                </div>
+                <label>
+                  Email
+                  <input name="email" type="email" required maxlength="255">
+                </label>
+                <div class="form-grid">
+                  <label>
+                    Логин
+                    <input name="login" type="text" required maxlength="100">
+                  </label>
+                  <label>
+                    Роль
+                    <select name="role" required>
+                      <option value="ADMIN">ADMIN</option>
+                      <option value="MANAGER">MANAGER</option>
+                      <option value="CUSTOMER">CUSTOMER</option>
+                      <option value="CARRIER">CARRIER</option>
+                    </select>
+                  </label>
+                </div>
+                <label>
+                  Новый пароль
+                  <input name="password" type="password" required minlength="8" maxlength="255">
+                </label>
+                <div class="admin-form-actions">
+                  <button class="button button--primary" type="submit">Сохранить</button>
+                  <button class="button button--secondary" type="button" id="admin-user-form-reset">Сбросить</button>
+                </div>
+                <p class="form-status admin-user-form-status" role="status" aria-live="polite"></p>
+              </form>
+            </div>
+          </section>
+
+          <section class="panel-card admin-section">
+            <div class="panel-card__header panel-card__header--split">
+              <div>
+                <h2>Заявки</h2>
+                <p class="panel-card__text">Просмотр, изменение основных данных и удаление отправлений.</p>
+              </div>
+              <button class="button button--secondary" type="button" id="refresh-shipments-button">Обновить</button>
+            </div>
+            <div class="dashboard-grid">
+              <div>
+                <p class="form-status admin-shipments-status" role="status" aria-live="polite"></p>
+                <div class="user-table" id="admin-shipments-list"></div>
+              </div>
+              <form class="form-card" id="admin-shipment-form">
+                <input name="id" type="hidden">
+                <label>
+                  Трек-номер
+                  <input name="trackingNumber" type="text" required maxlength="100">
+                </label>
+                <div class="form-grid">
+                  <label>
+                    Город отправления
+                    <input name="originCity" type="text" required maxlength="150">
+                  </label>
+                  <label>
+                    Город назначения
+                    <input name="destinationCity" type="text" required maxlength="150">
+                  </label>
+                </div>
+                <div class="form-grid">
+                  <label>
+                    Статус
+                    <select name="status" required>
+                      <option value="CREATED">CREATED</option>
+                      <option value="RECEIVED">RECEIVED</option>
+                      <option value="IN_TRANSIT">IN_TRANSIT</option>
+                      <option value="DELIVERED">DELIVERED</option>
+                      <option value="CANCELLED">CANCELLED</option>
+                    </select>
+                  </label>
+                  <label>
+                    Клиент
+                    <select name="customerId" size="5" required></select>
+                  </label>
+                </div>
+                <div class="form-grid">
+                  <label>
+                    Менеджер
+                    <select name="managerId" size="5" required></select>
+                  </label>
+                  <label>
+                    Транспорт
+                    <select name="vehicleIds" size="6" multiple required></select>
+                  </label>
+                </div>
+                <div class="form-grid">
+                  <label>
+                    Создано
+                    <input name="orderCreatedAt" type="datetime-local" required>
+                  </label>
+                  <label>
+                    Принято
+                    <input name="orderReceivedAt" type="datetime-local" required>
+                  </label>
+                </div>
+                <label>
+                  Прибытие
+                  <input name="arrivalAt" type="datetime-local" required>
+                </label>
+                <div class="admin-form-actions">
+                  <button class="button button--primary" type="submit">Сохранить</button>
+                  <button class="button button--secondary" type="button" id="admin-shipment-form-reset">Сбросить</button>
+                </div>
+                <p class="form-status admin-shipment-form-status" role="status" aria-live="polite"></p>
+              </form>
+            </div>
+          </section>
+
+          <section class="panel-card admin-section">
+            <div class="panel-card__header panel-card__header--split">
+              <div>
+                <h2>Транспортные средства</h2>
+                <p class="panel-card__text">Просмотр транспорта и удаление записей.</p>
+              </div>
+              <button class="button button--secondary" type="button" id="refresh-vehicles-button">Обновить</button>
+            </div>
+            <p class="form-status admin-vehicles-status" role="status" aria-live="polite"></p>
+            <div class="user-table" id="admin-vehicles-list"></div>
+          </section>
+
+          <section class="panel-card admin-section">
+            <div class="panel-card__header panel-card__header--split">
+              <div>
+                <h2>Грузы</h2>
+                <p class="panel-card__text">Просмотр, изменение и удаление грузов.</p>
+              </div>
+              <button class="button button--secondary" type="button" id="refresh-cargoes-button">Обновить</button>
+            </div>
+            <div class="dashboard-grid">
+              <div>
+                <p class="form-status admin-cargoes-status" role="status" aria-live="polite"></p>
+                <div class="user-table" id="admin-cargoes-list"></div>
+              </div>
+              <form class="form-card" id="admin-cargo-form">
+                <input name="id" type="hidden">
+                <label>
+                  Название груза
+                  <input name="name" type="text" required maxlength="255">
+                </label>
+                <div class="form-grid">
+                  <label>
+                    Вес, кг
+                    <input name="weightKg" type="number" step="0.01" min="0.01" max="30000" required>
+                  </label>
+                  <label>
+                    ID заявки
+                    <input name="shipmentId" type="number" min="1" required>
+                  </label>
+                </div>
+                <div class="admin-form-actions">
+                  <button class="button button--primary" type="submit">Сохранить</button>
+                  <button class="button button--secondary" type="button" id="admin-cargo-form-reset">Сбросить</button>
+                </div>
+                <p class="form-status admin-cargo-form-status" role="status" aria-live="polite"></p>
+              </form>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/script.js"></script>
+</body>
+</html>

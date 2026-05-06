@@ -16,7 +16,7 @@ public final class AppUserMapper {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getEmail(),
-                user.getEmail(),
+                user.getLogin(),
                 UserRole.valueOf(user.getRole().getCode())
         );
     }
@@ -25,5 +25,6 @@ public final class AppUserMapper {
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setEmail(request.getEmail());
+        user.setLogin(request.getLogin());
     }
 }
