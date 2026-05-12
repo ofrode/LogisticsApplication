@@ -1,9 +1,10 @@
 services:
   - type: web
-    name: logisticsapplication
+    name: logisticsapplication-backend
     runtime: docker
     plan: free
     autoDeploy: true
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /actuator/health
     envVars:
       - key: SPRING_PROFILES_ACTIVE
@@ -28,6 +29,16 @@ services:
         value: "86400"
       - key: SPRING_JPA_HIBERNATE_DDL_AUTO
         value: update
+  - type: web
+    name: logisticsapplication-frontend
+    runtime: docker
+    plan: free
+    autoDeploy: true
+    dockerfilePath: ./frontend/Dockerfile
+    healthCheckPath: /
+    envVars:
+      - key: BACKEND_BASE_URL
+        value: https://logisticsapplication-backend.onrender.com
 
 databases:
   - name: logisticsapplication-db
