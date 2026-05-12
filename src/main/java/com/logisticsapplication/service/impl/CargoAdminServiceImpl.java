@@ -12,6 +12,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -23,6 +24,7 @@ public class CargoAdminServiceImpl implements CargoAdminService {
     private final ShipmentSearchIndex shipmentSearchIndex;
 
     @Override
+    @Transactional(readOnly = true)
     public List<CargoAdminResponse> getAll() {
         return cargoRepository.findAll().stream()
                 .map(this::toResponse)
@@ -30,6 +32,7 @@ public class CargoAdminServiceImpl implements CargoAdminService {
     }
 
     @Override
+    @Transactional
     public CargoAdminResponse update(Long id, CargoAdminRequest request) {
         Cargo cargo = cargoRepository.findById(id)
                 .orElseThrow(
@@ -52,6 +55,7 @@ public class CargoAdminServiceImpl implements CargoAdminService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         if (!cargoRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cargo not found: " + id);
