@@ -34,6 +34,13 @@ curl http://localhost/actuator/health
 
 Для бесплатного деплоя на `Render` можно использовать `Blueprint` из `render.yaml`.
 
+Backend в проекте поддерживает оба формата Render-URL для Postgres:
+
+- `jdbc:postgresql://...`
+- `postgresql://...`
+
+Если Render передаст `connectionString` без префикса `jdbc:`, приложение автоматически преобразует его в JDBC-формат при старте.
+
 Нужно:
 
 1. Подключить GitHub-репозиторий в Render.
