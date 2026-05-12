@@ -18,14 +18,16 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -68,6 +70,9 @@ class ApiEndpointsIntegrationTest {
     private AppUser carrier;
     private Vehicle vehicle;
     private Shipment shipment;
+    private String authToken;
+
+    private static final String TEST_PASSWORD = "password123";
 
     @BeforeEach
     void setUp() {
@@ -82,6 +87,8 @@ class ApiEndpointsIntegrationTest {
                 "Vlad",
                 "Mogila",
                 "mogila@test.local",
+                "mogila@test.local",
+                TEST_PASSWORD,
                 getRole(UserRole.CUSTOMER),
                 null,
                 null,
@@ -92,6 +99,8 @@ class ApiEndpointsIntegrationTest {
                 "Maksim",
                 "Efimchik",
                 "efimchik@test.local",
+                "efimchik@test.local",
+                TEST_PASSWORD,
                 getRole(UserRole.MANAGER),
                 null,
                 null,
@@ -102,6 +111,8 @@ class ApiEndpointsIntegrationTest {
                 "Evgeniy",
                 "Apanas",
                 "apanas@test.local",
+                "apanas@test.local",
+                TEST_PASSWORD,
                 getRole(UserRole.CARRIER),
                 null,
                 null,
@@ -139,11 +150,12 @@ class ApiEndpointsIntegrationTest {
                 shipment
         ));
         shipment = shipmentRepository.save(shipment);
+        authToken = authenticate("efimchik@test.local", TEST_PASSWORD);
     }
 
     @Test
     void healthEndpointWorks() throws Exception {
-        mockMvc.perform(get("/api/health"))
+        mockMvc.perform(authorized(get("/api/health")))
                 .andExpect(status().isOk());
     }
 
@@ -154,20 +166,22 @@ class ApiEndpointsIntegrationTest {
                   "firstName": "Temp",
                   "lastName": "Manager",
                   "email": "temp.manager@test.local",
+                  "login": "temp.manager@test.local",
+                  "password": "password123",
                   "role": "MANAGER"
                 }
                 """;
 
-        mockMvc.perform(get("/api/users"))
+        mockMvc.perform(authorized(get("/api/users")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").exists());
 
-        mockMvc.perform(get("/api/users/{id}", manager.getId()))
+        mockMvc.perform(authorized(get("/api/users/{id}", manager.getId())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("efimchik@test.local"));
 
         String createResponse = mockMvc.perform(
-                        post("/api/users")
+                        authorized(post("/api/users"))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(createBody)
                 )
@@ -183,19 +197,21 @@ class ApiEndpointsIntegrationTest {
                   "firstName": "Updated",
                   "lastName": "Manager",
                   "email": "updated.manager@test.local",
+                  "login": "updated.manager@test.local",
+                  "password": "password123",
                   "role": "MANAGER"
                 }
                 """;
 
         mockMvc.perform(
-                        put("/api/users/{id}", createdId)
+                        authorized(put("/api/users/{id}", createdId))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(updateBody)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("updated.manager@test.local"));
 
-        mockMvc.perform(delete("/api/users/{id}", createdId))
+        mockMvc.perform(authorized(delete("/api/users/{id}", createdId)))
                 .andExpect(status().isNoContent());
     }
 
@@ -209,16 +225,16 @@ class ApiEndpointsIntegrationTest {
                 }
                 """.formatted(carrier.getId());
 
-        mockMvc.perform(get("/api/vehicles"))
+        mockMvc.perform(authorized(get("/api/vehicles")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].registrationNumber").exists());
 
-        mockMvc.perform(get("/api/vehicles/{id}", vehicle.getId()))
+        mockMvc.perform(authorized(get("/api/vehicles/{id}", vehicle.getId())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.registrationNumber").value("EF-9011"));
 
         String createResponse = mockMvc.perform(
-                        post("/api/vehicles")
+                        authorized(post("/api/vehicles"))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(createBody)
                 )
@@ -238,14 +254,14 @@ class ApiEndpointsIntegrationTest {
                 """.formatted(carrier.getId());
 
         mockMvc.perform(
-                        put("/api/vehicles/{id}", createdId)
+                        authorized(put("/api/vehicles/{id}", createdId))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(updateBody)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.registrationNumber").value("TEMP-9002"));
 
-        mockMvc.perform(delete("/api/vehicles/{id}", createdId))
+        mockMvc.perform(authorized(delete("/api/vehicles/{id}", createdId)))
                 .andExpect(status().isNoContent());
     }
 
@@ -274,20 +290,20 @@ class ApiEndpointsIntegrationTest {
                 }
                 """.formatted(customer.getId(), manager.getId(), vehicle.getId());
 
-        mockMvc.perform(get("/api/shipments"))
+        mockMvc.perform(authorized(get("/api/shipments")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].trackingNumber").value("SHIP-6001"));
 
-        mockMvc.perform(get("/api/shipments").param("optimized", "true"))
+        mockMvc.perform(authorized(get("/api/shipments").param("optimized", "true")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].trackingNumber").value("SHIP-6001"));
 
-        mockMvc.perform(get("/api/shipments/{id}", shipment.getId()))
+        mockMvc.perform(authorized(get("/api/shipments/{id}", shipment.getId())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.trackingNumber").value("SHIP-6001"));
 
         String createResponse = mockMvc.perform(
-                        post("/api/shipments")
+                        authorized(post("/api/shipments"))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(createBody)
                 )
@@ -298,7 +314,7 @@ class ApiEndpointsIntegrationTest {
                 .getContentAsString();
 
         mockMvc.perform(
-                        get("/api/shipments/search")
+                        authorized(get("/api/shipments/search"))
                                 .param("customerEmail", "mogila@test.local")
                                 .param("cargoName", "Electronics")
                                 .param("arrivalTo", "2026-03-15T23:59:59")
@@ -312,7 +328,7 @@ class ApiEndpointsIntegrationTest {
                 .andExpect(jsonPath("$.content[0].trackingNumber").value("SHIP-6001"));
 
         mockMvc.perform(
-                        get("/api/shipments/search")
+                        authorized(get("/api/shipments/search"))
                                 .param("customerEmail", "mogila@test.local")
                                 .param("cargoName", "Electronics")
                                 .param("arrivalTo", "2026-03-15T23:59:59")
@@ -324,7 +340,7 @@ class ApiEndpointsIntegrationTest {
                 .andExpect(jsonPath("$.fromCache").value(true));
 
         mockMvc.perform(
-                        get("/api/shipments/search")
+                        authorized(get("/api/shipments/search"))
                                 .param("customerEmail", "mogila@test.local")
                                 .param("cargoName", "Electronics")
                                 .param("arrivalTo", "2026-03-15T23:59:59")
@@ -361,14 +377,14 @@ class ApiEndpointsIntegrationTest {
                 """.formatted(customer.getId(), manager.getId(), vehicle.getId());
 
         mockMvc.perform(
-                        put("/api/shipments/{id}", createdId)
+                        authorized(put("/api/shipments/{id}", createdId))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(updateBody)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.destinationCity").value("Budapest"));
 
-        mockMvc.perform(delete("/api/shipments/{id}", createdId))
+        mockMvc.perform(authorized(delete("/api/shipments/{id}", createdId)))
                 .andExpect(status().isNoContent());
     }
 
@@ -427,7 +443,7 @@ class ApiEndpointsIntegrationTest {
         );
 
         mockMvc.perform(
-                        post("/api/shipments/bulk")
+                        authorized(post("/api/shipments/bulk"))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(bulkBody)
                 )
@@ -471,7 +487,7 @@ class ApiEndpointsIntegrationTest {
         );
 
         mockMvc.perform(
-                        post("/api/shipments/demo/partial-save")
+                        authorized(post("/api/shipments/demo/partial-save"))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(body)
                 )
@@ -481,7 +497,7 @@ class ApiEndpointsIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Intentional failure after partial save"));
 
         mockMvc.perform(
-                        post("/api/shipments/demo/rollback")
+                        authorized(post("/api/shipments/demo/rollback"))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(body.replace("DEMO-", "ROLL-"))
                 )
@@ -517,7 +533,7 @@ class ApiEndpointsIntegrationTest {
                 """.formatted(customer.getId(), manager.getId(), vehicle.getId());
 
         mockMvc.perform(
-                        post("/api/shipments")
+                        authorized(post("/api/shipments"))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(body)
                 )
@@ -552,7 +568,7 @@ class ApiEndpointsIntegrationTest {
                 """.formatted(customer.getId(), manager.getId(), vehicle.getId());
 
         mockMvc.perform(
-                        post("/api/shipments")
+                        authorized(post("/api/shipments"))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(body)
                 )
@@ -577,5 +593,44 @@ class ApiEndpointsIntegrationTest {
             valueEnd = response.indexOf('}', valueStart);
         }
         return Long.parseLong(response.substring(valueStart, valueEnd).trim());
+    }
+
+    private MockHttpServletRequestBuilder authorized(MockHttpServletRequestBuilder requestBuilder) {
+        return requestBuilder.header(HttpHeaders.AUTHORIZATION, "Bearer " + authToken);
+    }
+
+    private String authenticate(String login, String password) {
+        String loginBody = """
+                {
+                  "login": "%s",
+                  "password": "%s"
+                }
+                """.formatted(login, password);
+        try {
+            String response = mockMvc.perform(
+                            post("/api/auth/login")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(loginBody)
+                    )
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.token").isString())
+                    .andReturn()
+                    .getResponse()
+                    .getContentAsString();
+            return extractStringField(response, "token");
+        } catch (Exception exception) {
+            throw new IllegalStateException("Failed to authenticate test user", exception);
+        }
+    }
+
+    private String extractStringField(String response, String fieldName) {
+        String fieldToken = "\"" + fieldName + "\":\"";
+        int valueStart = response.indexOf(fieldToken);
+        if (valueStart < 0) {
+            throw new IllegalArgumentException("Field not found in response: " + fieldName);
+        }
+        valueStart += fieldToken.length();
+        int valueEnd = response.indexOf('"', valueStart);
+        return response.substring(valueStart, valueEnd);
     }
 }
