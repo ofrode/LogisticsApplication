@@ -1,0 +1,13 @@
+.git
+.github
+.idea
+.mvn/wrapper/maven-wrapper.jar
+target
+*.iml
+*.log
+jmeter/results
+postman
+README.md
+ci-cd.yml
+ci-cd_1.yml
+.env

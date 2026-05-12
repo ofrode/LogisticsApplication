@@ -1,0 +1,64 @@
+version: "3.9"
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: logistics-frontend
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/ > /dev/null"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: logistics-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-logistics_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-logistics_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+      APP_SECURITY_JWT_SECRET: ${APP_SECURITY_JWT_SECRET:-change-me-in-production-with-a-long-random-secret}
+      APP_SECURITY_JWT_EXPIRATION_SECONDS: ${APP_SECURITY_JWT_EXPIRATION_SECONDS:-86400}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  db:
+    image: postgres:16-alpine
+    container_name: logistics-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-logistics_db}
+      POSTGRES_USER: ${POSTGRES_USER:-logistics_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-logistics_user} -d ${POSTGRES_DB:-logistics_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:

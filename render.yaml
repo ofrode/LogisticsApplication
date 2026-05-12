@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: logisticsapplication
+    runtime: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: postgres
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: logisticsapplication-db
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: logisticsapplication-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: logisticsapplication-db
+          property: password
+      - key: SPRING_DATASOURCE_DRIVER_CLASS_NAME
+        value: org.postgresql.Driver
+      - key: APP_SECURITY_JWT_SECRET
+        generateValue: true
+      - key: APP_SECURITY_JWT_EXPIRATION_SECONDS
+        value: "86400"
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+
+databases:
+  - name: logisticsapplication-db
+    databaseName: logistics_db
+    user: logistics_user
+    plan: free

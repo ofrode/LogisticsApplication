@@ -18,4 +18,7 @@ public class AuthLoginResponse {
 
     @Schema(description = "Страница роли для перехода", example = "/manager.html")
     private String redirectUrl;
+
+    @Schema(description = "JWT токен доступа")
+    private String token;
 }

@@ -2,6 +2,55 @@
 
 REST API для управления логистическими заказами на `Spring Boot`.
 
+## Deployment и CI/CD
+
+В проект добавлены:
+
+- `Dockerfile` для backend-приложения;
+- отдельный frontend-контейнер на `nginx`;
+- `docker-compose.yml` для локального запуска `frontend + backend + PostgreSQL`;
+- `.env.example` с набором переменных окружения;
+- `render.yaml` для деплоя на `Render`;
+- `.github/workflows/ci-cd.yml` для `build -> test -> deploy -> healthcheck`.
+
+### Локальный запуск через Docker Compose
+
+1. Создайте `.env` на основе `.env.example`.
+2. Запустите:
+
+```bash
+docker compose up --build
+```
+
+3. Frontend будет доступен на `http://localhost`.
+4. Frontend проксирует `/api/**` и `/actuator/**` в backend-контейнер.
+4. Healthcheck:
+
+```bash
+curl http://localhost/actuator/health
+```
+
+### Render
+
+Для бесплатного деплоя на `Render` можно использовать `Blueprint` из `render.yaml`.
+
+Нужно:
+
+1. Подключить GitHub-репозиторий в Render.
+2. Выбрать `Blueprint` deploy.
+3. Подтвердить создание `Web Service` и `PostgreSQL`.
+4. После первого деплоя взять:
+   `Deploy Hook URL` из Render.
+5. В GitHub добавить secrets:
+   `RENDER_DEPLOY_HOOK_URL`
+   `RENDER_HEALTHCHECK_URL`
+
+Пример `RENDER_HEALTHCHECK_URL`:
+
+```text
+https://your-render-service.onrender.com/actuator/health
+```
+
 Проект покрывает:
 
 - CRUD для пользователей, транспорта и заказов;

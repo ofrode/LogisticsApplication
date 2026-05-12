@@ -12,6 +12,7 @@ import com.logisticsapplication.model.UserRole;
 import com.logisticsapplication.model.UserRoleLookup;
 import com.logisticsapplication.repository.AppUserRepository;
 import com.logisticsapplication.repository.UserRoleLookupRepository;
+import com.logisticsapplication.security.JwtService;
 import com.logisticsapplication.service.AppUserService;
 import java.util.List;
 import java.util.Locale;
@@ -32,6 +33,7 @@ public class AppUserServiceImpl implements AppUserService {
     private final AppUserRepository appUserRepository;
     private final UserRoleLookupRepository userRoleLookupRepository;
     private final ShipmentSearchIndex shipmentSearchIndex;
+    private final JwtService jwtService;
 
     @Override
     public AppUserResponse create(AppUserRequest request) {
@@ -82,12 +84,17 @@ public class AppUserServiceImpl implements AppUserService {
                                 "Invalid login or password"
                         )
                 );
-        if (!PASSWORD_ENCODER.matches(request.getPassword(), user.getPasswordHash())) {
+        if (!matchesPassword(request.getPassword(), user)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid login or password");
         }
         AppUserResponse userResponse = AppUserMapper.toResponse(user);
         UserRole role = userResponse.getRole();
-        return new AuthLoginResponse(userResponse, role, resolveRedirectUrl(role));
+        return new AuthLoginResponse(
+                userResponse,
+                role,
+                resolveRedirectUrl(role),
+                jwtService.generateToken(userResponse)
+        );
     }
 
     @Override
@@ -158,6 +165,29 @@ public class AppUserServiceImpl implements AppUserService {
                         )
                 );
         user.setRole(roleLookup);
+    }
+
+    private boolean matchesPassword(String rawPassword, AppUser user) {
+        String storedValue = user.getPasswordHash();
+        if (isBcryptHash(storedValue)) {
+            return PASSWORD_ENCODER.matches(rawPassword, storedValue);
+        }
+        if (!Objects.equals(rawPassword, storedValue)) {
+            return false;
+        }
+        user.setPasswordHash(PASSWORD_ENCODER.encode(rawPassword));
+        appUserRepository.save(user);
+        shipmentSearchIndex.invalidateAll();
+        return true;
+    }
+
+    private boolean isBcryptHash(String value) {
+        return value != null
+                && (
+                        value.startsWith("$2a$")
+                        || value.startsWith("$2b$")
+                        || value.startsWith("$2y$")
+                );
     }
 
     private void ensureEmailAvailable(String email, Long currentUserId) {

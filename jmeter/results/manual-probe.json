@@ -1,9 +1,0 @@
-{
-  "threadCount": 64,
-  "incrementsPerThread": 2000,
-  "expectedValue": 128000,
-  "unsafeValue": 15162,
-  "atomicValue": 128000,
-  "synchronizedValue": 128000,
-  "lostUpdates": 112838
-}

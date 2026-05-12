@@ -59,10 +59,38 @@ const carrierCargoesStatus = document.querySelector(".carrier-cargoes-status");
 let cachedShipments = [];
 let cachedUsers = [];
 window.cachedShipments = cachedShipments;
+const originalFetch = window.fetch.bind(window);
 
 function saveCurrentUser(user) {
   window.localStorage.setItem("logistics-current-user", JSON.stringify(user));
 }
+
+function saveAuthToken(token) {
+  window.localStorage.setItem("logistics-auth-token", token);
+}
+
+function getAuthToken() {
+  return window.localStorage.getItem("logistics-auth-token");
+}
+
+window.fetch = (input, init = {}) => {
+  const requestUrl = typeof input === "string" ? input : input.url;
+  const token = getAuthToken();
+  const isApiRequest = requestUrl.startsWith("/api/");
+  const isAuthRequest = requestUrl.startsWith("/api/auth/");
+  if (!token || !isApiRequest || isAuthRequest) {
+    return originalFetch(input, init);
+  }
+
+  const headers = new Headers(init.headers || {});
+  if (!headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+  return originalFetch(input, {
+    ...init,
+    headers
+  });
+};
 
 function getCurrentUser() {
   const rawValue = window.localStorage.getItem("logistics-current-user");
@@ -278,6 +306,7 @@ if (loginForm && loginFormStatus) {
 
       const result = await response.json();
       saveCurrentUser(result.user);
+      saveAuthToken(result.token);
       loginFormStatus.textContent = `Вход выполнен. Переходим в кабинет ${result.role}.`;
       window.location.href = result.redirectUrl;
     } catch (error) {
