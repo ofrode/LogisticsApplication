@@ -46,18 +46,6 @@ Backend в проекте поддерживает оба формата Render-
 1. Подключить GitHub-репозиторий в Render.
 2. Выбрать `Blueprint` deploy.
 3. Подтвердить создание `Web Service` и `PostgreSQL`.
-4. После первого деплоя взять:
-   `Deploy Hook URL` из Render.
-5. В GitHub добавить secrets:
-   `RENDER_DEPLOY_HOOK_URL`
-   `RENDER_HEALTHCHECK_URL`
-
-Пример `RENDER_HEALTHCHECK_URL`:
-
-```text
-https://your-render-service.onrender.com/actuator/health
-```
-
 Проект покрывает:
 
 - CRUD для пользователей, транспорта и заказов;
@@ -74,8 +62,7 @@ https://your-render-service.onrender.com/actuator/health
 - пагинацию (`Pageable`);
 - in-memory индекс (`HashMap`) для кэширования результатов поиска;
 - использование `Stream API` и `Optional` в сервисном слое;
-- unit- и integration-тесты;
-- CI-анализ с `JaCoCo` и `SonarQube`.
+- unit- и integration-тесты.
 
 ## Стек
 
@@ -88,9 +75,7 @@ https://your-render-service.onrender.com/actuator/health
 - `Maven`
 - `Checkstyle`
 - `Mockito`
-- `JaCoCo`
 - `GitHub Actions`
-- `SonarQube`
 
 ## Модель данных
 
@@ -167,9 +152,6 @@ HashMap cache"]
     end
 
     tests["JUnit / Mockito / Integration tests"]
-    ci["GitHub Actions
-JaCoCo -> SonarQube"]
-
     client --> api
     api --> service
     api --> exceptionHandler
@@ -181,7 +163,6 @@ JaCoCo -> SonarQube"]
     persistence --> data
     tests --> service
     tests --> api
-    ci --> tests
 ```
 
 Коротко по слоям:
@@ -193,16 +174,12 @@ JaCoCo -> SonarQube"]
 - `cache` хранит результаты поиска `Shipment`;
 - `aspect` логирует время выполнения сервисных методов;
 - `static` содержит публичную страницу компании и кабинеты ролей;
-- `test` проверяет приложение на уровне unit и integration;
-- `.github/workflows` запускает сборку, тесты и отправку coverage в SonarQube.
+- `test` проверяет приложение на уровне unit и integration.
 
 ## Структура проекта
 
 ```text
 logisticsapplication/
-├── .github/
-│   └── workflows/
-│       └── ci-sonarqube.yml
 ├── jmeter/
 │   ├── all-endpoints-no-delete.jmx
 │   ├── race-condition-demo.jmx
@@ -542,13 +519,6 @@ psql -h localhost -U logistics_user -d logistics_db -f "src/main/resources/sql/m
 - кэш (`fromCache`);
 - demo endpoint-ы транзакций;
 - cleanup данных.
-
-## CI и Coverage
-
-- workflow: `.github/workflows/ci-sonarqube.yml`;
-- сборка выполняет `./mvnw -B clean verify`;
-- `JaCoCo` генерирует `target/site/jacoco/jacoco.xml`;
-- self-hosted runner может отправлять анализ в локальный `SonarQube` на `http://localhost:9000`.
 
 ## Запуск и проверка
 
